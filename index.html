@@ -320,11 +320,11 @@
                             <div class="space-y-5">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Compromiso (USD)</label>
-                                    <input type="number" id="ceo-presupuesto-usd" oninput="handleCeoInput()" class="w-full bg-gray-50 border border-gray-200 text-marca-negro text-lg rounded-2xl p-4 font-black focus:ring-2 focus:ring-marca-magenta outline-none transition-all" value="5000">
+                                    <input type="number" id="ceo-presupuesto-usd" oninput="handleCeoInput()" onchange="handleCeoInput()" onkeyup="handleCeoInput()" class="w-full bg-gray-50 border border-gray-200 text-marca-negro text-lg rounded-2xl p-4 font-black focus:ring-2 focus:ring-marca-magenta outline-none transition-all" value="5000">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Cotización Dólar ($)</label>
-                                    <input type="number" id="ceo-cotizacion" oninput="handleCeoInput()" class="w-full bg-gray-50 border border-gray-200 text-marca-negro text-lg rounded-2xl p-4 font-black focus:ring-2 focus:ring-marca-magenta outline-none transition-all" placeholder="Ej: 1200">
+                                    <input type="number" id="ceo-cotizacion" oninput="handleCeoInput()" onchange="handleCeoInput()" onkeyup="handleCeoInput()" class="w-full bg-gray-50 border border-gray-200 text-marca-negro text-lg rounded-2xl p-4 font-black focus:ring-2 focus:ring-marca-magenta outline-none transition-all" placeholder="Ej: 1200">
                                 </div>
                                 <div class="bg-marca-negro p-6 rounded-3xl mt-6 text-white shadow-lg relative overflow-hidden">
                                     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
@@ -636,6 +636,10 @@
                         const cloudData = snap.data();
                         appState = { ...appState, ...cloudData };
                         
+                        // Prevención en caso de datos faltantes en la nube vieja
+                        if(!appState.presupuestosCEO) appState.presupuestosCEO = {};
+                        if(!appState.gastos) appState.gastos = [];
+                        
                         if (!isFirstSync) showToast('Datos actualizados desde la nube');
                         
                         document.getElementById('sync-title').innerText = 'SINC. ACTIVA';
@@ -682,9 +686,8 @@
                     console.error("Save Error:", e);
                     document.getElementById('last-sync').innerText = 'Error al guardar';
                 }
-            }, 800); // Pequeño delay para no saturar si hace muchos clicks
+            }, 800); 
         }
-
 
         // ==========================================
         // VISTAS
@@ -727,7 +730,7 @@
 
         function getFactTable(yearFilter = null, monthFilter = null) {
             let facts = [];
-            appState.gastos.forEach(g => {
+            (appState.gastos || []).forEach(g => {
                 if (yearFilter && g.ano !== yearFilter) return;
                 if (monthFilter && g.mesStr !== monthFilter) return;
                 const pr = g.prorrateoAplicado || {}; 
@@ -741,7 +744,7 @@
 
         function renderCarga() {
             const mSel = document.getElementById('carga-month').value;
-            let list = appState.gastos.filter(g => g.ano === currentGlobalYear && g.mesStr === mSel && g.tipo !== 'CEO');
+            let list = (appState.gastos || []).filter(g => g.ano === currentGlobalYear && g.mesStr === mSel && g.tipo !== 'CEO');
             list.sort((a, b) => new Date(a.fechaVto) - new Date(b.fechaVto));
 
             document.getElementById('tbody-carga').innerHTML = list.map(g => {
@@ -780,6 +783,8 @@
             let addedCount = 0;
             const mesIdx = appState.meses.indexOf(mSel);
             let defaultVto = `${currentGlobalYear}-${String(mesIdx+1).padStart(2,'0')}-10`;
+            
+            if(!appState.gastos) appState.gastos = [];
 
             appState.serviciosMaster.forEach(srv => {
                 const exists = appState.gastos.some(g => g.tipo === 'Fijo' && g.servicioId === srv.id && g.mesStr === mSel && g.ano === currentGlobalYear);
@@ -958,6 +963,8 @@
             const mes = document.getElementById('ceo-report-month').value;
             const clave = `${currentGlobalYear}-${mes}`;
             
+            if(!appState.presupuestosCEO) appState.presupuestosCEO = {};
+            
             const conf = appState.presupuestosCEO[clave] || {usd: 5000, cotizacion: ''};
             document.getElementById('ceo-presupuesto-usd').value = conf.usd;
             document.getElementById('ceo-cotizacion').value = conf.cotizacion;
@@ -968,8 +975,8 @@
             
             document.getElementById('lbl-ceo-comp-ars').innerText = fmt(presupuestoARS);
 
-            let ceoGastos = appState.gastos.filter(g => g.ano === currentGlobalYear && g.mesStr === mes && g.tipo === 'CEO');
-            let totalGastos = ceoGastos.reduce((acc, g) => acc + g.importeTotal, 0);
+            let ceoGastos = (appState.gastos || []).filter(g => g.ano === currentGlobalYear && g.mesStr === mes && g.tipo === 'CEO');
+            let totalGastos = ceoGastos.reduce((acc, g) => acc + (parseFloat(g.importeTotal)||0), 0);
             
             document.getElementById('lbl-ceo-gasto').innerText = `+ ${fmt(totalGastos)}`;
             document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
@@ -988,25 +995,45 @@
             lucide.createIcons();
         }
 
+        // LÓGICA CEO A PRUEBA DE FALLOS
         function handleCeoInput() {
-            const usd = parseFloat(document.getElementById('ceo-presupuesto-usd').value) || 0;
-            const cotiz = parseFloat(document.getElementById('ceo-cotizacion').value) || 0;
-            const presupuestoARS = usd * cotiz;
-            
-            document.getElementById('lbl-ceo-comp-ars').innerText = fmt(presupuestoARS);
-            
-            const mes = document.getElementById('ceo-report-month').value;
-            let ceoGastos = appState.gastos.filter(g => g.ano === currentGlobalYear && g.mesStr === mes && g.tipo === 'CEO');
-            let totalGastos = ceoGastos.reduce((acc, g) => acc + g.importeTotal, 0);
-            
-            document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
+            try {
+                // Obtenemos los valores de forma segura
+                const usdInput = document.getElementById('ceo-presupuesto-usd').value;
+                const cotizInput = document.getElementById('ceo-cotizacion').value;
+                
+                const usd = parseFloat(usdInput) || 0;
+                const cotiz = parseFloat(cotizInput) || 0;
+                const presupuestoARS = usd * cotiz;
+                
+                // Refrescamos la etiqueta del equivalente en pesos al instante
+                document.getElementById('lbl-ceo-comp-ars').innerText = fmt(presupuestoARS);
+                
+                const mes = document.getElementById('ceo-report-month').value;
+                const listadoGastos = appState.gastos || [];
+                
+                let ceoGastos = listadoGastos.filter(g => g.ano === currentGlobalYear && g.mesStr === mes && g.tipo === 'CEO');
+                let totalGastos = ceoGastos.reduce((acc, g) => acc + (parseFloat(g.importeTotal) || 0), 0);
+                
+                // Actualizamos el gran total instantáneamente
+                document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
 
-            // Guardar en la nube automáticamente los nuevos valores
-            appState.presupuestosCEO[`${currentGlobalYear}-${mes}`] = {
-                usd: usd,
-                cotizacion: cotiz
-            };
-            autoSaveToCloud();
+                // Prevención: Si no existe el objeto contenedor, lo creamos
+                if (!appState.presupuestosCEO) {
+                    appState.presupuestosCEO = {};
+                }
+                
+                // Guardamos en memoria local
+                appState.presupuestosCEO[`${currentGlobalYear}-${mes}`] = {
+                    usd: usd,
+                    cotizacion: cotiz
+                };
+                
+                // Mandamos a la nube
+                autoSaveToCloud();
+            } catch (error) {
+                console.error("Error en la calculadora en vivo:", error);
+            }
         }
 
         function renderConfig() {
@@ -1129,7 +1156,7 @@
         }
 
         window.editGasto = function(id) {
-            const g = appState.gastos.find(x=>x.id==id);
+            const g = (appState.gastos || []).find(x=>x.id==id);
             if(!g) return;
             openModalGasto(g.tipo);
             
@@ -1186,6 +1213,8 @@
                 obj.concepto = document.getElementById('gasto-concepto').value;
                 obj.prorrateoAplicado = { 'Mauricio (CEO)': 100 };
             }
+
+            if(!appState.gastos) appState.gastos = [];
 
             if(id) {
                 let existing = appState.gastos.find(x=>x.id==id);
@@ -1413,7 +1442,10 @@
         }
 
         function seedDataPrueba() {
+            if(!appState.presupuestosCEO) appState.presupuestosCEO = {};
             appState.presupuestosCEO["2026-Agosto"] = {usd: 5000, cotizacion: 1200};
+            
+            if(!appState.gastos) appState.gastos = [];
             const pr = appState.serviciosMaster[0].prorrateos;
             appState.gastos.push({ id: 2, tipo: 'Fijo', mesStr: 'Agosto', ano: '2026', servicioId: 1, importeTotal: 250000, estado: 'Pendiente', prorrateoAplicado:JSON.parse(JSON.stringify(pr)), fechaVto:'2026-08-10' });
         }
