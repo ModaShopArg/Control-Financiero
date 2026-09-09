@@ -349,10 +349,25 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm text-gray-600">
+                                <!-- MODIFICACIÓN 1: Se agrega columna 'Estado' al thead -->
                                 <thead class="text-xs text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold" id="thead-ceo">
-                                    <tr><th class="px-6 py-4">Fecha</th><th class="px-6 py-4">Concepto</th><th class="px-6 py-4">Importe</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+                                    <tr>
+                                        <th class="px-6 py-4">Fecha</th>
+                                        <th class="px-6 py-4">Concepto</th>
+                                        <th class="px-6 py-4">Estado</th>
+                                        <th class="px-6 py-4">Importe</th>
+                                        <th class="px-6 py-4 text-right">Acciones</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="tbody-ceo" class="divide-y divide-gray-50"></tbody>
+                                <!-- MODIFICACIÓN 2: Se agrega tfoot para la suma total -->
+                                <tfoot id="tfoot-ceo" class="bg-gray-50 border-t border-gray-100 hidden">
+                                    <tr>
+                                        <td colspan="3" class="px-6 py-4 font-black text-right text-marca-negro uppercase tracking-widest text-xs">Total Gastos CEO</td>
+                                        <td class="px-6 py-4 font-black text-marca-magenta text-base" id="tfoot-ceo-total">$0</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -981,17 +996,33 @@
             document.getElementById('lbl-ceo-gasto').innerText = `+ ${fmt(totalGastos)}`;
             document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
 
-            document.getElementById('tbody-ceo').innerHTML = ceoGastos.map(g => `
+            // MODIFICACIÓN: Renderizando la nueva columna de estado y actualizando el total
+            document.getElementById('tbody-ceo').innerHTML = ceoGastos.map(g => {
+                let badgeColor = g.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                return `
                 <tr class="hover:bg-gray-50/50">
                     <td class="px-6 py-4 font-bold text-gray-500">${g.fechaVto || g.ano}</td>
                     <td class="px-6 py-4 font-black text-gray-800">${g.concepto}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${badgeColor}">${g.estado || 'Pendiente'}</span>
+                    </td>
                     <td class="px-6 py-4 font-black text-marca-magenta">${fmt(g.importeTotal)}</td>
                     <td class="px-6 py-4 text-right">
                         <button onclick="editGasto(${g.id})" class="text-marca-negro hover:bg-gray-100 bg-gray-50 px-3 py-1.5 rounded-xl text-xs font-black mr-1">Editar</button>
                         <button onclick="deleteGasto(${g.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
-            `).join('') || `<tr><td colspan="4" class="text-center py-8 text-gray-400 font-bold">Sin gastos extra registrados.</td></tr>`;
+            `}).join('') || `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold">Sin gastos extra registrados.</td></tr>`;
+            
+            // MODIFICACIÓN: Mostrar/ocultar y actualizar footer con el total
+            const tfoot = document.getElementById('tfoot-ceo');
+            if (ceoGastos.length > 0) {
+                tfoot.classList.remove('hidden');
+                document.getElementById('tfoot-ceo-total').innerText = fmt(totalGastos);
+            } else {
+                tfoot.classList.add('hidden');
+            }
+
             lucide.createIcons();
         }
 
@@ -1278,7 +1309,10 @@
                     html += '</tr></thead>';
                 }
             } else {
-                if(tbodyId === 'tbody-ceo') html += '<thead style="background: #f4f4f5; color: #52525b; font-size: 10px; text-transform: uppercase;"><tr><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Fecha</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Importe</th></tr></thead>';
+                if(tbodyId === 'tbody-ceo') {
+                    // MODIFICACIÓN: Thead explícito en el PDF para área CEO
+                    html += '<thead style="background: #f4f4f5; color: #52525b; font-size: 10px; text-transform: uppercase;"><tr><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Fecha</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Estado</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7; text-align: right;">Importe</th></tr></thead>';
+                }
             }
 
             const tbody = document.getElementById(tbodyId);
@@ -1289,12 +1323,12 @@
                     const tds = tr.querySelectorAll('td');
                     const len = skipLastCol ? tds.length - 1 : tds.length;
                     for(let i=0; i<len; i++) {
-                        const align = tds[i].classList.contains('text-right') ? 'right' : 'left';
+                        const align = tds[i].classList.contains('text-right') || (tbodyId === 'tbody-ceo' && i === 3) ? 'right' : 'left';
                         let fwStyle = tds[i].classList.contains('font-black') ? 'bold' : 'normal';
                         
                         let content = tds[i].innerHTML;
-                        if(content.includes('Pendiente')) content = '<b style="color:#dc2626">PENDIENTE</b>';
-                        else if(content.includes('Pagado')) content = '<b style="color:#16a34a">PAGADO</b>';
+                        if(content.includes('Pendiente') || content.includes('PENDIENTE')) content = '<b style="color:#dc2626">PENDIENTE</b>';
+                        else if(content.includes('Pagado') || content.includes('PAGADO')) content = '<b style="color:#16a34a">PAGADO</b>';
                         
                         html += `<td style="padding: 8px; border-bottom: 1px solid #f4f4f5; text-align: ${align}; font-weight: ${fwStyle};">${content}</td>`;
                     }
@@ -1302,6 +1336,20 @@
                 });
                 html += '</tbody>';
             }
+
+            // MODIFICACIÓN: Capturar y agregar el tfoot en el reporte PDF para el área CEO
+            if (tbodyId === 'tbody-ceo') {
+                const tfoot = document.getElementById('tfoot-ceo');
+                if (tfoot && !tfoot.classList.contains('hidden')) {
+                     html += '<tfoot style="background: #f4f4f5;"><tr>';
+                     const tds = tfoot.querySelectorAll('td');
+                     html += `<td colspan="3" style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 10px; color: #52525b; text-transform: uppercase;">Total Gastos CEO</td>`;
+                     const total = document.getElementById('tfoot-ceo-total').innerText;
+                     html += `<td style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 12px; color: #E4007C;">${total}</td>`;
+                     html += '</tr></tfoot>';
+                }
+            }
+
             html += '</table>';
             return html;
         }
@@ -1400,7 +1448,7 @@
                             </table>
                         </div>
                         <div style="font-size:12px;font-weight:bold;margin-bottom:5px;">Detalle Gastos Directos CEO</div>
-                        ${extractTableHTML('tbody-ceo', null, true)}
+                        ${extractTableHTML('tbody-ceo', 'thead-ceo', true)}
                     `;
                 }
 
