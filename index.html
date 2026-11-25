@@ -90,7 +90,7 @@
     </div>
 
     <!-- Notificación Flotante -->
-    <div id="toast" class="fixed top-4 right-4 bg-marca-negro text-white px-6 py-4 rounded-2xl shadow-2xl transform transition-transform duration-300 translate-x-full z-[100] flex items-center gap-3 border border-gray-800">
+    <div id="toast" class="fixed top-4 right-4 bg-marca-negro text-white px-6 py-4 rounded-2xl shadow-2xl transform transition-transform duration-300 translate-x-full z-[200] flex items-center gap-3 border border-gray-800">
         <div class="bg-marca-magenta/20 p-2 rounded-full"><i data-lucide="info" class="w-5 h-5 text-marca-magenta"></i></div>
         <span id="toast-msg" class="text-sm font-bold tracking-wide">Notificación</span>
     </div>
@@ -102,7 +102,7 @@
             <!-- INICIO DEL ÁREA DEL LOGO -->
             <div class="w-full flex flex-col items-center justify-center relative">
                 <!-- Se asume que subirás un archivo llamado "logo.png" a tu GitHub en la misma carpeta -->
-                <img src="logo.png" alt="Logo ModaShop" class="w-full h-auto max-h-32 object-contain drop-shadow-lg mb-2">
+                <img src="logo.png" alt="Logo ModaShop" onerror="this.style.display='none'" class="w-full h-auto max-h-32 object-contain drop-shadow-lg mb-2">
                 
                 <div class="text-center">
                     <p class="text-[10px] text-gray-500 font-bold tracking-[0.2em] uppercase mt-1">Control Financiero</p>
@@ -124,6 +124,12 @@
             </button>
             <button onclick="changeTab('ceo')" id="btn-ceo" class="tab-btn flex items-center gap-4 px-5 py-4 text-sm font-bold text-left text-gray-400">
                 <i data-lucide="briefcase" class="w-5 h-5"></i> Área CEO / Reporte
+            </button>
+            <button onclick="changeTab('relacion-pago')" id="btn-relacion-pago" class="tab-btn flex items-center gap-4 px-5 py-4 text-sm font-bold text-left text-gray-400">
+                <i data-lucide="wallet" class="w-5 h-5"></i> Relación con Pago
+            </button>
+            <button onclick="changeTab('relacion-imputacion')" id="btn-relacion-imputacion" class="tab-btn flex items-center gap-4 px-5 py-4 text-sm font-bold text-left text-gray-400">
+                <i data-lucide="layers" class="w-5 h-5"></i> Relación con Imputación
             </button>
             
             <div class="mt-8 mb-2 px-2 text-[10px] font-black text-gray-600 uppercase tracking-widest">Ajustes del Sistema</div>
@@ -349,7 +355,6 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm text-gray-600">
-                                <!-- MODIFICACIÓN 1: Se agrega columna 'Estado' al thead -->
                                 <thead class="text-xs text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold" id="thead-ceo">
                                     <tr>
                                         <th class="px-6 py-4">Fecha</th>
@@ -360,7 +365,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-ceo" class="divide-y divide-gray-50"></tbody>
-                                <!-- MODIFICACIÓN 2: Se agrega tfoot para la suma total -->
                                 <tfoot id="tfoot-ceo" class="bg-gray-50 border-t border-gray-100 hidden">
                                     <tr>
                                         <td colspan="3" class="px-6 py-4 font-black text-right text-marca-negro uppercase tracking-widest text-xs">Total Gastos CEO</td>
@@ -370,6 +374,104 @@
                                 </tfoot>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: RELACIÓN CON PAGO -->
+            <div id="view-relacion-pago" class="hidden space-y-6">
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-marca-magentalight p-2 rounded-xl"><i data-lucide="filter" class="w-4 h-4 text-marca-magenta"></i></div>
+                        <span class="text-sm font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
+                        <select id="rel-pago-filter" onchange="renderRelacionPago()" class="bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-marca-magenta">
+                            <option value="fijos-ceo" selected>Gastos Fijos + CEO</option>
+                            <option value="fijos">Solo Gastos Fijos</option>
+                            <option value="ceo">Solo Gastos CEO</option>
+                            <option value="todos">Todos (inc. Variables)</option>
+                        </select>
+                    </div>
+                    <div class="text-xs font-bold text-gray-400 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-marca-magenta"></i>
+                        Refleja el monto efectivamente pagado según la Fecha de Pago (o mes de carga si no se indicó fecha).
+                    </div>
+                </div>
+
+                <!-- KPIs Relación con Pago -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Pagado en el Año</span>
+                        <span id="kpi-rel-pago-total" class="text-3xl font-black text-marca-negro mt-2 tracking-tight">$0</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-marca-magenta uppercase tracking-widest">Mes de Mayor Pago</span>
+                        <span id="kpi-rel-pago-max" class="text-2xl font-black text-marca-magenta mt-2 tracking-tight">-</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-green-600 uppercase tracking-widest">Promedio Mensual Pagado</span>
+                        <span id="kpi-rel-pago-prom" class="text-3xl font-black text-green-600 mt-2 tracking-tight">$0</span>
+                    </div>
+                </div>
+
+                <!-- Matriz Relación con Pago -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table id="table-rel-pago" class="w-full text-left text-xs text-gray-600">
+                            <thead id="thead-rel-pago" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold"></thead>
+                            <tbody id="tbody-rel-pago" class="divide-y divide-gray-50"></tbody>
+                            <tfoot id="tfoot-rel-pago" class="bg-gray-100 border-t-2 border-gray-200 font-black"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: RELACIÓN CON IMPUTACIÓN DE IMPUESTO -->
+            <div id="view-relacion-imputacion" class="hidden space-y-6">
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="bg-marca-magentalight p-2 rounded-xl"><i data-lucide="filter" class="w-4 h-4 text-marca-magenta"></i></div>
+                        <span class="text-sm font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
+                        <select id="rel-imp-filter" onchange="renderRelacionImputacion()" class="bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-marca-magenta">
+                            <option value="fijos-ceo" selected>Gastos Fijos + CEO</option>
+                            <option value="fijos">Solo Gastos Fijos</option>
+                            <option value="ceo">Solo Gastos CEO</option>
+                            <option value="todos">Todos (inc. Variables)</option>
+                        </select>
+                        <label class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-2xl cursor-pointer select-none">
+                            <input type="checkbox" id="rel-imp-show-var" onchange="renderRelacionImputacion()" class="accent-marca-magenta w-4 h-4" checked>
+                            <span class="text-xs font-bold text-gray-700">Ver % variación mensual</span>
+                        </label>
+                    </div>
+                    <div class="text-xs font-bold text-gray-400 flex items-center gap-2">
+                        <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-marca-magenta"></i>
+                        Haz clic en cualquier servicio o monto para dividir su imputación entre meses.
+                    </div>
+                </div>
+
+                <!-- KPIs Relación con Imputación -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Imputado en el Año</span>
+                        <span id="kpi-rel-imp-total" class="text-3xl font-black text-marca-negro mt-2 tracking-tight">$0</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-marca-magenta uppercase tracking-widest">Servicios Analizados</span>
+                        <span id="kpi-rel-imp-count" class="text-3xl font-black text-marca-magenta mt-2 tracking-tight">0</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Mayor Alza Intermensual</span>
+                        <span id="kpi-rel-imp-alza" class="text-xl font-black text-red-500 mt-2 tracking-tight">-</span>
+                    </div>
+                </div>
+
+                <!-- Matriz Relación con Imputación -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table id="table-rel-imp" class="w-full text-left text-xs text-gray-600">
+                            <thead id="thead-rel-imp" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold"></thead>
+                            <tbody id="tbody-rel-imp" class="divide-y divide-gray-50"></tbody>
+                            <tfoot id="tfoot-rel-imp" class="bg-gray-100 border-t-2 border-gray-200 font-black"></tfoot>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -412,6 +514,21 @@
 
     <!-- SISTEMA DE MODALES -->
     
+    <!-- Modal de Confirmación Personalizado -->
+    <div id="modal-confirm" class="hidden fixed inset-0 bg-[#1a1a1a]/80 backdrop-blur-sm z-[150] items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 border border-gray-100 text-center">
+            <div class="bg-red-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-black text-marca-negro mb-2">Confirmar acción</h3>
+            <p id="confirm-msg" class="text-sm font-semibold text-gray-500 mb-6">¿Está seguro?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal(false)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 p-3.5 rounded-2xl text-sm font-black transition-colors">Cancelar</button>
+                <button onclick="closeConfirmModal(true)" class="flex-1 bg-red-500 hover:bg-red-600 text-white p-3.5 rounded-2xl text-sm font-black transition-colors shadow-lg">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Reporte PDF -->
     <div id="modal-export" class="hidden fixed inset-0 bg-[#1a1a1a]/80 backdrop-blur-sm z-[100] items-center justify-center p-4">
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md flex flex-col overflow-hidden transform scale-100 transition-transform border border-gray-100">
@@ -426,6 +543,11 @@
                     <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="chk-pdf-ceo" class="accent-marca-magenta w-5 h-5" checked> <span class="text-sm font-bold text-gray-700 group-hover:text-marca-magenta transition-colors">Área de Liquidación CEO</span></label>
                     <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="chk-pdf-comp" class="accent-marca-magenta w-5 h-5" checked> <span class="text-sm font-bold text-gray-700 group-hover:text-marca-magenta transition-colors">Diagnóstico Estratégico</span></label>
                     <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="chk-pdf-carga" class="accent-marca-magenta w-5 h-5"> <span class="text-sm font-bold text-gray-700 group-hover:text-marca-magenta transition-colors">Tabla Completa de Operaciones</span></label>
+                    <div class="border-t border-gray-100 pt-3 mt-2 space-y-4">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Hojas de Relación Mensual</p>
+                        <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="chk-pdf-rel-pago" class="accent-marca-magenta w-5 h-5"> <span class="text-sm font-bold text-gray-700 group-hover:text-marca-magenta transition-colors">Relación con Pago (Flujo)</span></label>
+                        <label class="flex items-center gap-3 cursor-pointer group"><input type="checkbox" id="chk-pdf-rel-imp" class="accent-marca-magenta w-5 h-5"> <span class="text-sm font-bold text-gray-700 group-hover:text-marca-magenta transition-colors">Relación con Imputación de Impuesto</span></label>
+                    </div>
                 </div>
                 <button onclick="generarReporteHTML()" class="w-full bg-marca-negro hover:bg-gray-800 text-white p-4 rounded-2xl font-black shadow-lg transition-all flex justify-center items-center gap-2">
                     <i data-lucide="printer" class="w-5 h-5"></i> Generar e Imprimir
@@ -514,10 +636,40 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN OPCIONAL: IMPUTACIÓN POR MES (OPCIÓN A) -->
+                    <div id="section-imputacion-meses" class="border-t border-gray-100 pt-6 mt-2">
+                        <div class="flex justify-between items-center mb-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Imputación por Mes (Opcional)</label>
+                                <p class="text-[11px] font-semibold text-gray-400 ml-1 mt-0.5">Si el pago abarca varios meses (ej. bimestral), divídelo aquí. Si lo dejas vacío, se imputa 100% al mes actual.</p>
+                            </div>
+                            <button type="button" onclick="addImputacionRow()" class="text-xs bg-marca-magentalight text-marca-magenta font-black px-3 py-1.5 rounded-xl hover:bg-pink-100 transition-colors flex-shrink-0">+ Añadir Mes</button>
+                        </div>
+                        <div id="imputaciones-container" class="space-y-3 mt-3"></div>
+                        <div id="imputacion-summary-box" class="hidden mt-4 bg-marca-magentalight/60 p-4 rounded-2xl flex justify-between items-center border border-pink-100">
+                            <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">Pendiente por Imputar:</span>
+                            <span id="gasto-imputacion-restante" class="text-base font-black text-marca-magenta">$0.00</span>
+                        </div>
+                    </div>
+
                     <button type="submit" class="w-full bg-marca-negro hover:bg-gray-800 text-white p-4 rounded-2xl font-black shadow-lg transition-all mt-2">Guardar Gasto</button>
                 </form>
 
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Acceso Rápido de Imputación (OPCIÓN B) -->
+    <div id="modal-imputacion-rapida" class="hidden fixed inset-0 bg-[#1a1a1a]/80 backdrop-blur-sm z-[100] items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-100">
+            <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                <div>
+                    <h3 id="quick-imp-title" class="text-xl font-black text-marca-negro tracking-tight">Imputaciones del Servicio</h3>
+                    <p id="quick-imp-subtitle" class="text-xs font-bold text-gray-400 mt-1">Selecciona un gasto para dividir su importe entre meses.</p>
+                </div>
+                <button onclick="closeQuickImputacion()" class="text-gray-400 hover:text-marca-magenta transition-colors bg-white p-2 rounded-full shadow-sm"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="quick-imp-list" class="p-6 overflow-y-auto space-y-3 flex-1"></div>
         </div>
     </div>
 
@@ -559,14 +711,22 @@
         let globalCharts = {};
         let isFirstSync = true;
         let saveTimeout = null;
+        let pendingConfirmAction = null;
 
-        // Exponer funciones
+        // Exponer funciones al ámbito global
         window.handleLogin = handleLogin;
         window.changeTab = changeTab;
         window.renderApp = renderApp;
         window.renderCarga = renderCarga;
         window.renderDashboard = renderDashboard;
         window.renderCeo = renderCeo;
+        window.renderRelacionPago = renderRelacionPago;
+        window.renderRelacionImputacion = renderRelacionImputacion;
+        window.addImputacionRow = addImputacionRow;
+        window.removeImputacionRow = removeImputacionRow;
+        window.calcImputacionRestante = calcImputacionRestante;
+        window.openQuickImputacion = openQuickImputacion;
+        window.closeQuickImputacion = closeQuickImputacion;
         window.openModalServicio = openModalServicio;
         window.openModalGasto = openModalGasto;
         window.closeModal = closeModal;
@@ -582,6 +742,7 @@
         window.handleCeoInput = handleCeoInput;
         window.updateComparativo = updateComparativo;
         window.autoSaveToCloud = autoSaveToCloud;
+        window.closeConfirmModal = closeConfirmModal;
         window.openModalExportReport = () => { document.getElementById('modal-export').classList.add('modal-active'); lucide.createIcons(); };
         window.closeModalExport = () => document.getElementById('modal-export').classList.remove('modal-active');
         window.generarReporteHTML = generarReporteHTML;
@@ -593,6 +754,21 @@
             document.getElementById('toast-msg').innerText = msg;
             t.classList.remove('translate-x-full');
             setTimeout(() => t.classList.add('translate-x-full'), 3000);
+        }
+
+        function openConfirmModal(msg, onConfirm) {
+            document.getElementById('confirm-msg').innerText = msg;
+            pendingConfirmAction = onConfirm;
+            document.getElementById('modal-confirm').classList.add('modal-active');
+            lucide.createIcons();
+        }
+
+        function closeConfirmModal(confirmed) {
+            document.getElementById('modal-confirm').classList.remove('modal-active');
+            if (confirmed && typeof pendingConfirmAction === 'function') {
+                pendingConfirmAction();
+            }
+            pendingConfirmAction = null;
         }
 
         // INIT
@@ -718,7 +894,7 @@
             activeBtn.classList.add('active', 'text-white');
             activeBtn.classList.remove('text-gray-400');
 
-            const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'config'];
+            const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'relacion-pago', 'relacion-imputacion', 'config'];
             vistas.forEach(t => document.getElementById(`view-${t}`).style.display = t === tab ? 'block' : 'none');
 
             const titulos = {
@@ -726,6 +902,8 @@
                 'dashboard': ['Tablero General', 'Visión consolidada del año fiscal.'],
                 'comparativo': ['Diagnóstico Estratégico', 'Análisis detallado cruzando múltiples meses.'],
                 'ceo': ['Área de Liquidación CEO', 'Control de compromisos y total a pagar.'],
+                'relacion-pago': ['Relación con Pago', 'Flujo mensual real de desembolsos por servicio.'],
+                'relacion-imputacion': ['Relación con Imputación de Impuesto', 'Costo real atribuido a cada mes para detectar subas y diferencias.'],
                 'config': ['Ajustes del Sistema', 'Configuración de PDVs y reglas de prorrateo.']
             };
             document.getElementById('page-title').innerText = titulos[tab][0];
@@ -740,6 +918,8 @@
             if (activeTab === 'dashboard') renderDashboard();
             if (activeTab === 'comparativo') renderComparativoInit();
             if (activeTab === 'ceo') renderCeo();
+            if (activeTab === 'relacion-pago') renderRelacionPago();
+            if (activeTab === 'relacion-imputacion') renderRelacionImputacion();
             if (activeTab === 'config') renderConfig();
         }
 
@@ -996,7 +1176,6 @@
             document.getElementById('lbl-ceo-gasto').innerText = `+ ${fmt(totalGastos)}`;
             document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
 
-            // MODIFICACIÓN: Renderizando la nueva columna de estado y actualizando el total
             document.getElementById('tbody-ceo').innerHTML = ceoGastos.map(g => {
                 let badgeColor = g.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
                 return `
@@ -1014,7 +1193,6 @@
                 </tr>
             `}).join('') || `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold">Sin gastos extra registrados.</td></tr>`;
             
-            // MODIFICACIÓN: Mostrar/ocultar y actualizar footer con el total
             const tfoot = document.getElementById('tfoot-ceo');
             if (ceoGastos.length > 0) {
                 tfoot.classList.remove('hidden');
@@ -1029,7 +1207,6 @@
         // LÓGICA CEO A PRUEBA DE FALLOS
         function handleCeoInput() {
             try {
-                // Obtenemos los valores de forma segura
                 const usdInput = document.getElementById('ceo-presupuesto-usd').value;
                 const cotizInput = document.getElementById('ceo-cotizacion').value;
                 
@@ -1037,7 +1214,6 @@
                 const cotiz = parseFloat(cotizInput) || 0;
                 const presupuestoARS = usd * cotiz;
                 
-                // Refrescamos la etiqueta del equivalente en pesos al instante
                 document.getElementById('lbl-ceo-comp-ars').innerText = fmt(presupuestoARS);
                 
                 const mes = document.getElementById('ceo-report-month').value;
@@ -1046,26 +1222,311 @@
                 let ceoGastos = listadoGastos.filter(g => g.ano === currentGlobalYear && g.mesStr === mes && g.tipo === 'CEO');
                 let totalGastos = ceoGastos.reduce((acc, g) => acc + (parseFloat(g.importeTotal) || 0), 0);
                 
-                // Actualizamos el gran total instantáneamente
                 document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
 
-                // Prevención: Si no existe el objeto contenedor, lo creamos
                 if (!appState.presupuestosCEO) {
                     appState.presupuestosCEO = {};
                 }
                 
-                // Guardamos en memoria local
                 appState.presupuestosCEO[`${currentGlobalYear}-${mes}`] = {
                     usd: usd,
                     cotizacion: cotiz
                 };
                 
-                // Mandamos a la nube
                 autoSaveToCloud();
             } catch (error) {
                 console.error("Error en la calculadora en vivo:", error);
             }
         }
+
+        // ==========================================
+        // NUEVAS VISTAS: RELACIÓN CON PAGO E IMPUTACIÓN
+        // ==========================================
+
+        function getGastoNombre(g) {
+            if (g.tipo === 'Fijo') {
+                return appState.serviciosMaster.find(s => s.id == g.servicioId)?.nombre || 'Srv. Borrado';
+            }
+            return g.concepto || 'Sin concepto';
+        }
+
+        function filtrarPorTipoRelacion(g, filterVal) {
+            if (filterVal === 'fijos-ceo') return g.tipo === 'Fijo' || g.tipo === 'CEO';
+            if (filterVal === 'fijos') return g.tipo === 'Fijo';
+            if (filterVal === 'ceo') return g.tipo === 'CEO';
+            return true; // 'todos'
+        }
+
+        function renderRelacionPago() {
+            const filterVal = document.getElementById('rel-pago-filter').value;
+            const meses = appState.meses;
+            const matrix = {};
+
+            (appState.gastos || []).forEach(g => {
+                if (!filtrarPorTipoRelacion(g, filterVal)) return;
+
+                // Calcular total efectivamente pagado
+                let montoPagado = 0;
+                if (g.pagos && g.pagos.length > 0) {
+                    montoPagado = g.pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+                } else if (g.estado === 'Pagado') {
+                    montoPagado = parseFloat(g.importeTotal) || 0;
+                }
+                if (montoPagado <= 0) return;
+
+                // Determinar mes y año de pago (Fecha de Pago tiene prioridad, sino mes/año de carga)
+                let pagoMes = g.mesStr;
+                let pagoAno = g.ano;
+                if (g.fechaPago && g.fechaPago.includes('-')) {
+                    const partes = g.fechaPago.split('-');
+                    if (partes.length >= 2) {
+                        pagoAno = partes[0];
+                        const mIdx = parseInt(partes[1], 10) - 1;
+                        if (mIdx >= 0 && mIdx < 12) pagoMes = meses[mIdx];
+                    }
+                }
+                if (pagoAno !== currentGlobalYear) return;
+
+                const nombre = getGastoNombre(g);
+                if (!matrix[nombre]) {
+                    matrix[nombre] = { tipo: g.tipo, meses: {}, total: 0 };
+                    meses.forEach(m => matrix[nombre].meses[m] = 0);
+                }
+                matrix[nombre].meses[pagoMes] += montoPagado;
+                matrix[nombre].total += montoPagado;
+            });
+
+            // Encabezado
+            let thHtml = `<tr><th class="px-5 py-4 sticky left-0 bg-gray-50 z-10 min-w-[200px]">Servicio / Concepto</th>`;
+            meses.forEach(m => thHtml += `<th class="px-3 py-4 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
+            thHtml += `<th class="px-4 py-4 text-right text-marca-negro whitespace-nowrap">Total Año</th></tr>`;
+            document.getElementById('thead-rel-pago').innerHTML = thHtml;
+
+            const nombres = Object.keys(matrix).sort((a, b) => matrix[b].total - matrix[a].total);
+            const totMes = {};
+            meses.forEach(m => totMes[m] = 0);
+            let granTotal = 0;
+
+            let tbodyHtml = '';
+            if (nombres.length === 0) {
+                tbodyHtml = `<tr><td colspan="14" class="text-center py-10 text-gray-400 font-bold">No hay pagos registrados en ${currentGlobalYear} para este filtro.</td></tr>`;
+            } else {
+                nombres.forEach(nom => {
+                    const row = matrix[nom];
+                    const badge = row.tipo === 'CEO' ? `<span class="ml-1.5 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
+                    let tr = `<tr class="hover:bg-gray-50/70 transition-colors">
+                        <td class="px-5 py-3.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 whitespace-nowrap">${nom}${badge}</td>`;
+                    meses.forEach(m => {
+                        const val = row.meses[m] || 0;
+                        totMes[m] += val;
+                        tr += `<td class="px-3 py-3.5 text-right whitespace-nowrap ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">${val > 0 ? fmt(val) : '-'}</td>`;
+                    });
+                    granTotal += row.total;
+                    tr += `<td class="px-4 py-3.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap">${fmt(row.total)}</td></tr>`;
+                    tbodyHtml += tr;
+                });
+            }
+            document.getElementById('tbody-rel-pago').innerHTML = tbodyHtml;
+
+            // Pie de tabla (Totales)
+            let tfHtml = `<tr><td class="px-5 py-4 text-marca-negro sticky left-0 bg-gray-100 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
+            let maxMes = '-', maxVal = 0, mesesConPago = 0;
+            meses.forEach(m => {
+                if (totMes[m] > 0) mesesConPago++;
+                if (totMes[m] > maxVal) { maxVal = totMes[m]; maxMes = m; }
+                tfHtml += `<td class="px-3 py-4 text-right text-marca-negro whitespace-nowrap">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
+            });
+            tfHtml += `<td class="px-4 py-4 text-right text-marca-magenta text-sm whitespace-nowrap">${fmt(granTotal)}</td></tr>`;
+            document.getElementById('tfoot-rel-pago').innerHTML = tfHtml;
+
+            // KPIs
+            document.getElementById('kpi-rel-pago-total').innerText = fmt(granTotal);
+            document.getElementById('kpi-rel-pago-max').innerText = maxVal > 0 ? `${maxMes} (${fmt(maxVal)})` : '-';
+            document.getElementById('kpi-rel-pago-prom').innerText = fmt(mesesConPago > 0 ? granTotal / mesesConPago : 0);
+            lucide.createIcons();
+        }
+
+        function renderRelacionImputacion() {
+            const filterVal = document.getElementById('rel-imp-filter').value;
+            const showVar = document.getElementById('rel-imp-show-var').checked;
+            const meses = appState.meses;
+            const matrix = {};
+
+            (appState.gastos || []).forEach(g => {
+                if (g.ano !== currentGlobalYear) return;
+                if (!filtrarPorTipoRelacion(g, filterVal)) return;
+                const importe = parseFloat(g.importeTotal) || 0;
+                if (importe <= 0) return;
+
+                const nombre = getGastoNombre(g);
+                if (!matrix[nombre]) {
+                    matrix[nombre] = { tipo: g.tipo, meses: {}, hasSplit: {}, total: 0 };
+                    meses.forEach(m => { matrix[nombre].meses[m] = 0; matrix[nombre].hasSplit[m] = false; });
+                }
+
+                // Si tiene imputación personalizada por mes, usamos esa; si no, 100% al mes original
+                if (g.imputacionMeses && g.imputacionMeses.length > 0) {
+                    g.imputacionMeses.forEach(imp => {
+                        const mnt = parseFloat(imp.monto) || 0;
+                        if (mnt > 0 && matrix[nombre].meses[imp.mes] !== undefined) {
+                            matrix[nombre].meses[imp.mes] += mnt;
+                            matrix[nombre].hasSplit[imp.mes] = true;
+                            matrix[nombre].total += mnt;
+                        }
+                    });
+                } else {
+                    if (matrix[nombre].meses[g.mesStr] !== undefined) {
+                        matrix[nombre].meses[g.mesStr] += importe;
+                        matrix[nombre].total += importe;
+                    }
+                }
+            });
+
+            // Encabezado
+            let thHtml = `<tr><th class="px-5 py-4 sticky left-0 bg-gray-50 z-10 min-w-[200px]">Servicio / Concepto</th>`;
+            meses.forEach(m => thHtml += `<th class="px-3 py-4 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
+            thHtml += `<th class="px-4 py-4 text-right text-marca-negro whitespace-nowrap">Total Año</th>`;
+            thHtml += `<th class="px-4 py-4 text-center whitespace-nowrap">Dividir</th></tr>`;
+            document.getElementById('thead-rel-imp').innerHTML = thHtml;
+
+            const nombres = Object.keys(matrix).sort((a, b) => matrix[b].total - matrix[a].total);
+            const totMes = {};
+            meses.forEach(m => totMes[m] = 0);
+            let granTotal = 0;
+            let mayorAlzaPct = 0;
+            let mayorAlzaTexto = '-';
+
+            let tbodyHtml = '';
+            if (nombres.length === 0) {
+                tbodyHtml = `<tr><td colspan="15" class="text-center py-10 text-gray-400 font-bold">No hay gastos cargados en ${currentGlobalYear} para este filtro.</td></tr>`;
+            } else {
+                nombres.forEach(nom => {
+                    const row = matrix[nom];
+                    const safeNom = nom.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const badge = row.tipo === 'CEO' ? `<span class="ml-1.5 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
+                    let tr = `<tr class="hover:bg-gray-50/70 transition-colors">
+                        <td onclick="openQuickImputacion('${safeNom}')" class="px-5 py-3.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 whitespace-nowrap cursor-pointer hover:text-marca-magenta transition-colors">${nom}${badge}</td>`;
+
+                    meses.forEach((m, idx) => {
+                        const val = row.meses[m] || 0;
+                        totMes[m] += val;
+
+                        let varHtml = '';
+                        if (showVar && val > 0 && idx > 0) {
+                            const prevVal = row.meses[meses[idx - 1]] || 0;
+                            if (prevVal > 0) {
+                                const diffPct = ((val - prevVal) / prevVal) * 100;
+                                if (diffPct > mayorAlzaPct) {
+                                    mayorAlzaPct = diffPct;
+                                    mayorAlzaTexto = `${nom} (${m.substring(0,3)} +${diffPct.toFixed(1)}%)`;
+                                }
+                                if (Math.abs(diffPct) >= 0.1) {
+                                    const cls = diffPct > 0 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50';
+                                    const sign = diffPct > 0 ? '+' : '';
+                                    varHtml = `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${cls}">${sign}${diffPct.toFixed(1)}%</span></div>`;
+                                } else {
+                                    varHtml = `<div class="mt-0.5"><span class="text-[9px] font-bold text-gray-400">0%</span></div>`;
+                                }
+                            }
+                        }
+
+                        const splitDot = row.hasSplit[m] ? `<span title="Imputación dividida manualmente" class="inline-block w-1.5 h-1.5 rounded-full bg-marca-magenta mr-1 align-middle"></span>` : '';
+                        tr += `<td onclick="openQuickImputacion('${safeNom}', '${m}')" class="px-3 py-3 text-right whitespace-nowrap cursor-pointer hover:bg-marca-magentalight/40 transition-colors ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">
+                            <div>${splitDot}${val > 0 ? fmt(val) : '-'}</div>${varHtml}
+                        </td>`;
+                    });
+
+                    granTotal += row.total;
+                    tr += `<td class="px-4 py-3.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap">${fmt(row.total)}</td>
+                        <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <button onclick="openQuickImputacion('${safeNom}')" class="text-marca-negro hover:bg-marca-magentalight hover:text-marca-magenta bg-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors inline-flex items-center gap-1">
+                                <i data-lucide="split" class="w-3.5 h-3.5"></i> Editar
+                            </button>
+                        </td></tr>`;
+                    tbodyHtml += tr;
+                });
+            }
+            document.getElementById('tbody-rel-imp').innerHTML = tbodyHtml;
+
+            // Pie de tabla (Totales)
+            let tfHtml = `<tr><td class="px-5 py-4 text-marca-negro sticky left-0 bg-gray-100 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
+            meses.forEach(m => {
+                tfHtml += `<td class="px-3 py-4 text-right text-marca-negro whitespace-nowrap">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
+            });
+            tfHtml += `<td class="px-4 py-4 text-right text-marca-magenta text-sm whitespace-nowrap">${fmt(granTotal)}</td><td></td></tr>`;
+            document.getElementById('tfoot-rel-imp').innerHTML = tfHtml;
+
+            // KPIs
+            document.getElementById('kpi-rel-imp-total').innerText = fmt(granTotal);
+            document.getElementById('kpi-rel-imp-count').innerText = nombres.length;
+            document.getElementById('kpi-rel-imp-alza').innerText = mayorAlzaTexto;
+            lucide.createIcons();
+        }
+
+        // OPCIÓN B: Modal rápido desde la tabla de Imputación
+        function openQuickImputacion(servicioNombre, mesClick = null) {
+            const filterVal = document.getElementById('rel-imp-filter').value;
+            const gastosSrv = (appState.gastos || []).filter(g => {
+                if (g.ano !== currentGlobalYear) return false;
+                if (!filtrarPorTipoRelacion(g, filterVal)) return false;
+                return getGastoNombre(g) === servicioNombre && (parseFloat(g.importeTotal) || 0) > 0;
+            });
+
+            // Si hizo clic en un mes específico y hay un único gasto en ese mes, abrimos directo el editor
+            if (mesClick) {
+                const delMes = gastosSrv.filter(g => {
+                    if (g.imputacionMeses && g.imputacionMeses.length > 0) {
+                        return g.imputacionMeses.some(i => i.mes === mesClick && parseFloat(i.monto) > 0);
+                    }
+                    return g.mesStr === mesClick;
+                });
+                if (delMes.length === 1) {
+                    editGasto(delMes[0].id, true);
+                    return;
+                }
+            }
+
+            document.getElementById('quick-imp-title').innerText = servicioNombre;
+            document.getElementById('quick-imp-subtitle').innerText = `Facturas cargadas en ${currentGlobalYear}. Elige una para dividir o ajustar su imputación mensual.`;
+
+            const listEl = document.getElementById('quick-imp-list');
+            if (gastosSrv.length === 0) {
+                listEl.innerHTML = `<p class="text-center py-8 text-gray-400 font-bold text-sm">No se encontraron facturas con importe mayor a $0.</p>`;
+            } else {
+                listEl.innerHTML = gastosSrv.map(g => {
+                    const tieneSplit = g.imputacionMeses && g.imputacionMeses.length > 0;
+                    const detalleSplit = tieneSplit
+                        ? g.imputacionMeses.map(i => `<span class="inline-block bg-marca-magentalight text-marca-magenta px-2 py-0.5 rounded-lg text-[10px] font-black mr-1 mb-1">${i.mes}: ${fmt(i.monto)}</span>`).join('')
+                        : `<span class="text-[11px] font-semibold text-gray-400">100% imputado a ${g.mesStr}</span>`;
+
+                    return `
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-marca-negro uppercase">${g.mesStr}</span>
+                                <span class="text-xs font-bold text-gray-400">• Vto: ${g.fechaVto || '-'}</span>
+                            </div>
+                            <div class="text-base font-black text-marca-magenta mt-0.5">${fmt(g.importeTotal)}</div>
+                            <div class="mt-2">${detalleSplit}</div>
+                        </div>
+                        <button onclick="closeQuickImputacion(); editGasto(${g.id}, true)" class="bg-marca-negro hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-black flex-shrink-0 transition-colors">
+                            Dividir / Editar
+                        </button>
+                    </div>`;
+                }).join('');
+            }
+
+            document.getElementById('modal-imputacion-rapida').classList.add('modal-active');
+            lucide.createIcons();
+        }
+
+        function closeQuickImputacion() {
+            document.getElementById('modal-imputacion-rapida').classList.remove('modal-active');
+        }
+
+        // ==========================================
+        // CONFIGURACIÓN (PDVs y MAESTRO DE SERVICIOS)
+        // ==========================================
 
         function renderConfig() {
             document.getElementById('pdv-badges-container').innerHTML = appState.puntosDeVenta.map((p, i) => `
@@ -1101,13 +1562,19 @@
                 input.value = ''; autoSaveToCloud(); renderConfig();
             }
         }
+
         function removePDV(idx) {
-            if(confirm('¿Eliminar PDV? El historial se mantiene.')) {
-                appState.puntosDeVenta.splice(idx, 1); autoSaveToCloud(); renderConfig();
-            }
+            openConfirmModal('¿Eliminar PDV? El historial de gastos anteriores se mantiene intacto.', () => {
+                appState.puntosDeVenta.splice(idx, 1);
+                autoSaveToCloud();
+                renderConfig();
+            });
         }
 
-        // Gestión de Formularios
+        // ==========================================
+        // GESTIÓN DE FORMULARIOS (MODALES)
+        // ==========================================
+
         function openModalServicio() {
             document.getElementById('modal-title').innerText = 'Regla de Prorrateo';
             document.getElementById('form-gasto').style.display = 'none';
@@ -1144,7 +1611,7 @@
         function saveServicio(e) {
             e.preventDefault();
             const t = Array.from(document.querySelectorAll('.pct-input')).reduce((acc, i) => acc + (parseFloat(i.value)||0), 0);
-            if(t !== 100) { alert('El prorrateo debe sumar exactamente 100%.'); return; }
+            if(t !== 100) { showToast('El prorrateo debe sumar exactamente 100%.'); return; }
 
             let pr = {}; document.querySelectorAll('.pct-input').forEach(i => pr[i.getAttribute('data-pdv')] = parseFloat(i.value)||0);
             const id = document.getElementById('srv-id').value;
@@ -1182,11 +1649,12 @@
             }
 
             document.getElementById('pagos-container').innerHTML = ''; calcFaltaPagar();
-            document.getElementById('gasto-importe').addEventListener('input', calcFaltaPagar);
+            document.getElementById('imputaciones-container').innerHTML = ''; calcImputacionRestante();
+            document.getElementById('gasto-importe').oninput = () => { calcFaltaPagar(); calcImputacionRestante(); };
             document.getElementById('modal-container').classList.add('modal-active');
         }
 
-        window.editGasto = function(id) {
+        window.editGasto = function(id, focusImputacion = false) {
             const g = (appState.gastos || []).find(x=>x.id==id);
             if(!g) return;
             openModalGasto(g.tipo);
@@ -1213,6 +1681,23 @@
                 });
             }
             calcFaltaPagar();
+
+            // Cargar imputaciones por mes si existen
+            const impCont = document.getElementById('imputaciones-container');
+            impCont.innerHTML = '';
+            if (g.imputacionMeses && g.imputacionMeses.length > 0) {
+                g.imputacionMeses.forEach(imp => {
+                    addImputacionRow(imp.mes, imp.monto);
+                });
+            }
+            calcImputacionRestante();
+
+            if (focusImputacion) {
+                setTimeout(() => {
+                    const sec = document.getElementById('section-imputacion-meses');
+                    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
+            }
         }
 
         function saveGasto(e) {
@@ -1226,12 +1711,30 @@
                 if(mnt > 0) { pagos.push({metodo: met, monto: mnt}); totalPagado += mnt; }
             });
 
-            if(totalPagado > importe) { alert('El total pagado no puede superar el importe de la factura.'); return; }
+            if(totalPagado > importe) { showToast('El total pagado no puede superar el importe de la factura.'); return; }
+
+            // Leer imputaciones por mes (opcional)
+            let imputacionMeses = [];
+            let totalImputado = 0;
+            document.querySelectorAll('.imputacion-row').forEach(row => {
+                const mesImp = row.querySelector('select').value;
+                const mntImp = parseFloat(row.querySelector('input').value) || 0;
+                if (mntImp > 0) {
+                    imputacionMeses.push({ mes: mesImp, monto: mntImp });
+                    totalImputado += mntImp;
+                }
+            });
+
+            if (imputacionMeses.length > 0 && Math.abs(totalImputado - importe) > 0.05) {
+                showToast('La suma de imputaciones por mes debe coincidir con el importe total.');
+                return;
+            }
 
             let obj = {
                 tipo: tipo, mesStr: document.getElementById('gasto-mes-impacto').value, ano: currentGlobalYear,
                 fechaVto: document.getElementById('gasto-vto').value, fechaPago: document.getElementById('gasto-pago-fecha').value,
-                importeTotal: importe, estado: (totalPagado >= importe && importe > 0) ? 'Pagado' : 'Pendiente', pagos: pagos
+                importeTotal: importe, estado: (totalPagado >= importe && importe > 0) ? 'Pagado' : 'Pendiente', pagos: pagos,
+                imputacionMeses: imputacionMeses
             };
 
             if (tipo === 'Fijo') {
@@ -1257,9 +1760,11 @@
         }
 
         function deleteGasto(id) {
-            if(confirm('¿Eliminar permanentemente?')) {
-                appState.gastos = appState.gastos.filter(g => g.id != id); autoSaveToCloud(); renderApp();
-            }
+            openConfirmModal('¿Eliminar este gasto permanentemente?', () => {
+                appState.gastos = appState.gastos.filter(g => g.id != id);
+                autoSaveToCloud();
+                renderApp();
+            });
         }
 
         function addPagoRow() {
@@ -1282,6 +1787,45 @@
             el.innerText = fmt(falta); el.className = falta <= 0 ? 'text-xl font-black text-green-500' : 'text-xl font-black text-red-500';
         }
 
+        function addImputacionRow(defaultMes = null, defaultMonto = '') {
+            const cont = document.getElementById('imputaciones-container');
+            const row = document.createElement('div');
+            const mesActual = defaultMes || document.getElementById('gasto-mes-impacto').value || appState.meses[0];
+            row.className = 'imputacion-row flex gap-3 items-center bg-white p-2 rounded-2xl border border-pink-100 shadow-sm';
+            row.innerHTML = `
+                <select class="flex-1 text-sm font-bold text-gray-700 border-none bg-transparent p-2 outline-none">
+                    ${appState.meses.map(m => `<option value="${m}" ${m === mesActual ? 'selected' : ''}>${m}</option>`).join('')}
+                </select>
+                <input type="number" step="0.01" value="${defaultMonto}" class="w-32 text-base font-black border border-gray-200 rounded-xl p-2.5 text-right outline-none focus:ring-2 focus:ring-marca-magenta" placeholder="$0.00" oninput="calcImputacionRestante()">
+                <button type="button" onclick="removeImputacionRow(this)" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-xl"><i data-lucide="minus" class="w-4 h-4"></i></button>
+            `;
+            cont.appendChild(row);
+            calcImputacionRestante();
+            lucide.createIcons();
+        }
+
+        function removeImputacionRow(btn) {
+            btn.parentElement.remove();
+            calcImputacionRestante();
+        }
+
+        function calcImputacionRestante() {
+            const rows = document.querySelectorAll('.imputacion-row');
+            const box = document.getElementById('imputacion-summary-box');
+            if (rows.length === 0) {
+                box.classList.add('hidden');
+                return;
+            }
+            box.classList.remove('hidden');
+            const tot = parseFloat(document.getElementById('gasto-importe').value) || 0;
+            let suma = 0;
+            rows.forEach(r => suma += (parseFloat(r.querySelector('input').value) || 0));
+            const rest = tot - suma;
+            const el = document.getElementById('gasto-imputacion-restante');
+            el.innerText = fmt(rest);
+            el.className = Math.abs(rest) <= 0.05 ? 'text-base font-black text-green-600' : 'text-base font-black text-red-500';
+        }
+
         function closeModal() { document.getElementById('modal-container').classList.remove('modal-active'); }
 
         function drawChart(id, type, labels, data, legendRight = false) {
@@ -1293,6 +1837,10 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: legendRight ? 'right' : 'bottom' } } }
             });
         }
+
+        // ==========================================
+        // EXPORTACIÓN A PDF
+        // ==========================================
 
         function extractTableHTML(tbodyId, theadId, skipLastCol = true) {
             let html = '<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; font-family: sans-serif;">';
@@ -1310,7 +1858,6 @@
                 }
             } else {
                 if(tbodyId === 'tbody-ceo') {
-                    // MODIFICACIÓN: Thead explícito en el PDF para área CEO
                     html += '<thead style="background: #f4f4f5; color: #52525b; font-size: 10px; text-transform: uppercase;"><tr><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Fecha</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Estado</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7; text-align: right;">Importe</th></tr></thead>';
                 }
             }
@@ -1337,17 +1884,71 @@
                 html += '</tbody>';
             }
 
-            // MODIFICACIÓN: Capturar y agregar el tfoot en el reporte PDF para el área CEO
             if (tbodyId === 'tbody-ceo') {
                 const tfoot = document.getElementById('tfoot-ceo');
                 if (tfoot && !tfoot.classList.contains('hidden')) {
-                     html += '<tfoot style="background: #f4f4f5;"><tr>';
-                     const tds = tfoot.querySelectorAll('td');
-                     html += `<td colspan="3" style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 10px; color: #52525b; text-transform: uppercase;">Total Gastos CEO</td>`;
-                     const total = document.getElementById('tfoot-ceo-total').innerText;
-                     html += `<td style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 12px; color: #E4007C;">${total}</td>`;
-                     html += '</tr></tfoot>';
+                    html += '<tfoot style="background: #f4f4f5;"><tr>';
+                    html += `<td colspan="3" style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 10px; color: #52525b; text-transform: uppercase;">Total Gastos CEO</td>`;
+                    const total = document.getElementById('tfoot-ceo-total').innerText;
+                    html += `<td style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 12px; color: #E4007C;">${total}</td>`;
+                    html += '</tr></tfoot>';
                 }
+            }
+
+            html += '</table>';
+            return html;
+        }
+
+        function extractMatrixPDFHTML(tableId, skipLastCol = false) {
+            const table = document.getElementById(tableId);
+            if (!table) return '';
+            let html = '<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 8.5px; font-family: sans-serif;">';
+
+            const thead = table.querySelector('thead');
+            if (thead) {
+                html += '<thead style="background: #f4f4f5; color: #52525b; text-transform: uppercase;"><tr>';
+                const ths = thead.querySelectorAll('th');
+                const len = skipLastCol ? ths.length - 1 : ths.length;
+                for (let i = 0; i < len; i++) {
+                    const align = i === 0 ? 'left' : 'right';
+                    html += `<th style="padding: 5px 3px; border-bottom: 2px solid #e4e4e7; text-align: ${align};">${ths[i].innerText}</th>`;
+                }
+                html += '</tr></thead>';
+            }
+
+            const tbody = table.querySelector('tbody');
+            if (tbody) {
+                html += '<tbody style="color: #27272a;">';
+                tbody.querySelectorAll('tr').forEach(tr => {
+                    html += '<tr>';
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length === 1) {
+                        html += `<td colspan="14" style="padding: 10px; text-align: center; color: #71717a;">${tds[0].innerText}</td>`;
+                    } else {
+                        const len = skipLastCol ? tds.length - 1 : tds.length;
+                        for (let i = 0; i < len; i++) {
+                            const align = i === 0 ? 'left' : 'right';
+                            const fw = (i === 0 || i === len - 1) ? 'bold' : 'normal';
+                            const col = (i === len - 1) ? '#E4007C' : '#27272a';
+                            html += `<td style="padding: 4px 3px; border-bottom: 1px solid #f4f4f5; text-align: ${align}; font-weight: ${fw}; color: ${col};">${tds[i].innerText.replace(/\n/g, '<br>')}</td>`;
+                        }
+                    }
+                    html += '</tr>';
+                });
+                html += '</tbody>';
+            }
+
+            const tfoot = table.querySelector('tfoot');
+            if (tfoot) {
+                html += '<tfoot style="background: #f4f4f5; font-weight: bold;"><tr>';
+                const tds = tfoot.querySelectorAll('td');
+                const len = skipLastCol ? tds.length - 1 : tds.length;
+                for (let i = 0; i < len; i++) {
+                    const align = i === 0 ? 'left' : 'right';
+                    const col = (i === len - 1) ? '#E4007C' : '#1a1a1a';
+                    html += `<td style="padding: 6px 3px; border-top: 2px solid #e4e4e7; text-align: ${align}; color: ${col};">${tds[i].innerText}</td>`;
+                }
+                html += '</tr></tfoot>';
             }
 
             html += '</table>';
@@ -1359,10 +1960,10 @@
             showToast('Preparando documento PDF...');
 
             const prevTab = activeTab;
-            const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'config'];
+            const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'relacion-pago', 'relacion-imputacion', 'config'];
             vistas.forEach(t => { const el = document.getElementById(`view-${t}`); el.style.display = 'block'; el.style.position = 'absolute'; el.style.visibility = 'hidden'; el.style.width = '1000px'; });
 
-            renderDashboard(); renderComparativoInit(); renderCeo(); renderCarga();
+            renderDashboard(); renderComparativoInit(); renderCeo(); renderCarga(); renderRelacionPago(); renderRelacionImputacion();
 
             setTimeout(() => {
                 const mesCarga = document.getElementById('carga-month').value;
@@ -1401,7 +2002,6 @@
                         @media print { body { padding: 0; } .page { padding: 0; width: 100%; } }
                     </style>
                 </head>
-                <!-- Se ejecuta window.print() inmediatamente al abrir -->
                 <body onload="window.print()">
                     <div class="page">
                         <div class="header">
@@ -1472,6 +2072,22 @@
                     `;
                 }
 
+                if (document.getElementById('chk-pdf-rel-pago').checked) {
+                    const filtroPagoTxt = document.getElementById('rel-pago-filter').selectedOptions[0].text;
+                    html += `
+                        <h2 style="page-break-before: always;">Relación con Pago - Flujo Mensual (${filtroPagoTxt})</h2>
+                        ${extractMatrixPDFHTML('table-rel-pago', false)}
+                    `;
+                }
+
+                if (document.getElementById('chk-pdf-rel-imp').checked) {
+                    const filtroImpTxt = document.getElementById('rel-imp-filter').selectedOptions[0].text;
+                    html += `
+                        <h2 style="page-break-before: always;">Relación con Imputación de Impuesto (${filtroImpTxt})</h2>
+                        ${extractMatrixPDFHTML('table-rel-imp', true)}
+                    `;
+                }
+
                 html += `
                         <div style="text-align:center;font-size:9px;color:#a1a1aa;margin-top:40px;border-top:1px solid #e4e4e7;padding-top:10px;">
                             Documento generado automáticamente por Sistema Modashop. Uso exclusivo gerencial.
@@ -1484,7 +2100,7 @@
                 const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.target = '_blank'; // Abre en pestaña nueva para imprimir
+                a.href = url; a.target = '_blank';
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
             }, 600);
         }
