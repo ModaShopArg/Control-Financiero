@@ -57,6 +57,11 @@
 
         /* Lock Screen Blur */
         .blur-sm-custom { filter: blur(8px); pointer-events: none; user-select: none; }
+
+        /* Menú lateral colapsable en PC */
+        @media (min-width: 768px) {
+            aside.sidebar-collapsed { width: 0 !important; min-width: 0 !important; padding: 0 !important; overflow: hidden !important; opacity: 0; }
+        }
     </style>
 </head>
 <body class="text-gray-800 h-screen flex flex-col md:flex-row overflow-hidden relative bg-marca-gris" id="body-wrapper">
@@ -96,7 +101,7 @@
     </div>
 
     <!-- Menú Lateral (Aside) -->
-    <aside id="main-aside" class="w-full md:w-72 bg-marca-negro text-gray-300 flex-shrink-0 flex flex-col h-full overflow-y-auto z-10 shadow-2xl">
+    <aside id="main-aside" class="w-full md:w-64 bg-marca-negro text-gray-300 flex-shrink-0 flex flex-col h-full overflow-y-auto z-10 shadow-2xl transition-all duration-300">
         <div class="p-8 pb-6 border-b border-gray-800/50 flex flex-col items-center justify-center gap-4">
             
             <!-- INICIO DEL ÁREA DEL LOGO -->
@@ -158,13 +163,18 @@
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 p-4 md:p-10 overflow-y-auto h-full relative" id="main-content-area">
-        <div class="max-w-7xl mx-auto">
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto h-full relative" id="main-content-area">
+        <div class="w-full max-w-[1600px] mx-auto">
             
-            <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 id="page-title" class="text-3xl md:text-4xl font-black text-marca-negro tracking-tight">Carga Mensual Operativa</h1>
-                    <p id="page-desc" class="text-gray-500 text-sm md:text-base font-semibold mt-2">Registro cronológico y gestión de pagos divididos.</p>
+            <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <button onclick="toggleSidebar()" title="Mostrar / Ocultar menú lateral" class="hidden md:flex items-center justify-center bg-white hover:bg-gray-100 text-marca-negro p-2.5 rounded-2xl shadow-sm border border-gray-200 mt-1 transition-colors flex-shrink-0">
+                        <i data-lucide="panel-left" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <h1 id="page-title" class="text-3xl md:text-4xl font-black text-marca-negro tracking-tight">Carga Mensual Operativa</h1>
+                        <p id="page-desc" class="text-gray-500 text-sm md:text-base font-semibold mt-2">Registro cronológico y gestión de pagos divididos.</p>
+                    </div>
                 </div>
                 <!-- Filtro de Año Global -->
                 <div class="flex items-center gap-3 bg-white p-2.5 rounded-2xl shadow-sm border border-gray-200">
@@ -236,19 +246,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Gastos</span>
-                        <span id="kpi-dash-total" class="text-3xl font-black text-marca-negro mt-2 tracking-tight">$0</span>
+                        <span id="kpi-dash-total" class="text-2xl xl:text-3xl font-black text-marca-negro mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-green-600 uppercase tracking-widest">Pagado</span>
-                        <span id="kpi-dash-pagado" class="text-3xl font-black text-green-600 mt-2 tracking-tight">$0</span>
+                        <span id="kpi-dash-pagado" class="text-2xl xl:text-3xl font-black text-green-600 mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Pendiente</span>
-                        <span id="kpi-dash-pendiente" class="text-3xl font-black text-red-500 mt-2 tracking-tight">$0</span>
+                        <span id="kpi-dash-pendiente" class="text-2xl xl:text-3xl font-black text-red-500 mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-marca-magenta uppercase tracking-widest">Promedio Mensual</span>
-                        <span id="kpi-dash-promedio" class="text-3xl font-black text-marca-magenta mt-2 tracking-tight">$0</span>
+                        <span id="kpi-dash-promedio" class="text-2xl xl:text-3xl font-black text-marca-magenta mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
                 </div>
 
@@ -379,98 +389,110 @@
             </div>
 
             <!-- VISTA: RELACIÓN CON PAGO -->
-            <div id="view-relacion-pago" class="hidden space-y-6">
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
-                    <div class="flex items-center gap-3">
+            <div id="view-relacion-pago" class="hidden space-y-5">
+                <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-3 items-center justify-between">
+                    <div class="flex flex-wrap items-center gap-3">
                         <div class="bg-marca-magentalight p-2 rounded-xl"><i data-lucide="filter" class="w-4 h-4 text-marca-magenta"></i></div>
-                        <span class="text-sm font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
-                        <select id="rel-pago-filter" onchange="renderRelacionPago()" class="bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-marca-magenta">
+                        <span class="text-xs font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
+                        <select id="rel-pago-filter" onchange="renderRelacionPago()" class="bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-2xl p-2.5 outline-none focus:ring-2 focus:ring-marca-magenta">
                             <option value="fijos-ceo" selected>Gastos Fijos + CEO</option>
                             <option value="fijos">Solo Gastos Fijos</option>
                             <option value="ceo">Solo Gastos CEO</option>
                             <option value="todos">Todos (inc. Variables)</option>
                         </select>
+                        <select id="rel-pago-periodo" onchange="renderRelacionPago()" class="bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-2xl p-2.5 outline-none focus:ring-2 focus:ring-marca-magenta">
+                            <option value="con-datos" selected>Solo meses con datos</option>
+                            <option value="todos">Año Completo (Ene - Dic)</option>
+                            <option value="s1">1° Semestre (Ene - Jun)</option>
+                            <option value="s2">2° Semestre (Jul - Dic)</option>
+                        </select>
                     </div>
                     <div class="text-xs font-bold text-gray-400 flex items-center gap-2">
-                        <i data-lucide="info" class="w-4 h-4 text-marca-magenta"></i>
-                        Refleja el monto efectivamente pagado según la Fecha de Pago (o mes de carga si no se indicó fecha).
+                        <i data-lucide="info" class="w-4 h-4 text-marca-magenta flex-shrink-0"></i>
+                        Refleja el monto pagado según Fecha de Pago (o mes de carga).
                     </div>
                 </div>
 
                 <!-- KPIs Relación con Pago -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Pagado en el Año</span>
-                        <span id="kpi-rel-pago-total" class="text-3xl font-black text-marca-negro mt-2 tracking-tight">$0</span>
+                        <span id="kpi-rel-pago-total" class="text-2xl xl:text-3xl font-black text-marca-negro mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-marca-magenta uppercase tracking-widest">Mes de Mayor Pago</span>
-                        <span id="kpi-rel-pago-max" class="text-2xl font-black text-marca-magenta mt-2 tracking-tight">-</span>
+                        <span id="kpi-rel-pago-max" class="text-xl xl:text-2xl font-black text-marca-magenta mt-2 tracking-tight">-</span>
                     </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-green-600 uppercase tracking-widest">Promedio Mensual Pagado</span>
-                        <span id="kpi-rel-pago-prom" class="text-3xl font-black text-green-600 mt-2 tracking-tight">$0</span>
+                        <span id="kpi-rel-pago-prom" class="text-2xl xl:text-3xl font-black text-green-600 mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
                 </div>
 
                 <!-- Matriz Relación con Pago -->
                 <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table id="table-rel-pago" class="w-full text-left text-xs text-gray-600">
-                            <thead id="thead-rel-pago" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold"></thead>
+                    <div class="overflow-auto max-h-[65vh]">
+                        <table id="table-rel-pago" class="w-full text-left text-[11px] text-gray-600">
+                            <thead id="thead-rel-pago" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold sticky top-0 z-20 shadow-sm"></thead>
                             <tbody id="tbody-rel-pago" class="divide-y divide-gray-50"></tbody>
-                            <tfoot id="tfoot-rel-pago" class="bg-gray-100 border-t-2 border-gray-200 font-black"></tfoot>
+                            <tfoot id="tfoot-rel-pago" class="bg-gray-100 border-t-2 border-gray-200 font-black sticky bottom-0 z-20"></tfoot>
                         </table>
                     </div>
                 </div>
             </div>
 
             <!-- VISTA: RELACIÓN CON IMPUTACIÓN DE IMPUESTO -->
-            <div id="view-relacion-imputacion" class="hidden space-y-6">
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+            <div id="view-relacion-imputacion" class="hidden space-y-5">
+                <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100 flex flex-wrap gap-3 items-center justify-between">
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="bg-marca-magentalight p-2 rounded-xl"><i data-lucide="filter" class="w-4 h-4 text-marca-magenta"></i></div>
-                        <span class="text-sm font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
-                        <select id="rel-imp-filter" onchange="renderRelacionImputacion()" class="bg-gray-50 border border-gray-200 text-sm font-bold text-gray-700 rounded-2xl p-3 outline-none focus:ring-2 focus:ring-marca-magenta">
+                        <span class="text-xs font-black text-marca-negro uppercase tracking-wide">Mostrar:</span>
+                        <select id="rel-imp-filter" onchange="renderRelacionImputacion()" class="bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-2xl p-2.5 outline-none focus:ring-2 focus:ring-marca-magenta">
                             <option value="fijos-ceo" selected>Gastos Fijos + CEO</option>
                             <option value="fijos">Solo Gastos Fijos</option>
                             <option value="ceo">Solo Gastos CEO</option>
                             <option value="todos">Todos (inc. Variables)</option>
                         </select>
-                        <label class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-2xl cursor-pointer select-none">
+                        <select id="rel-imp-periodo" onchange="renderRelacionImputacion()" class="bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-2xl p-2.5 outline-none focus:ring-2 focus:ring-marca-magenta">
+                            <option value="con-datos" selected>Solo meses con datos</option>
+                            <option value="todos">Año Completo (Ene - Dic)</option>
+                            <option value="s1">1° Semestre (Ene - Jun)</option>
+                            <option value="s2">2° Semestre (Jul - Dic)</option>
+                        </select>
+                        <label class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3.5 py-2 rounded-2xl cursor-pointer select-none">
                             <input type="checkbox" id="rel-imp-show-var" onchange="renderRelacionImputacion()" class="accent-marca-magenta w-4 h-4" checked>
-                            <span class="text-xs font-bold text-gray-700">Ver % variación mensual</span>
+                            <span class="text-xs font-bold text-gray-700">Ver % variación</span>
                         </label>
                     </div>
                     <div class="text-xs font-bold text-gray-400 flex items-center gap-2">
-                        <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-marca-magenta"></i>
-                        Haz clic en cualquier servicio o monto para dividir su imputación entre meses.
+                        <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-marca-magenta flex-shrink-0"></i>
+                        Haz clic en cualquier servicio o monto para dividir meses.
                     </div>
                 </div>
 
                 <!-- KPIs Relación con Imputación -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Imputado en el Año</span>
-                        <span id="kpi-rel-imp-total" class="text-3xl font-black text-marca-negro mt-2 tracking-tight">$0</span>
+                        <span id="kpi-rel-imp-total" class="text-2xl xl:text-3xl font-black text-marca-negro mt-2 tracking-tight tabular-nums">$0</span>
                     </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-marca-magenta uppercase tracking-widest">Servicios Analizados</span>
-                        <span id="kpi-rel-imp-count" class="text-3xl font-black text-marca-magenta mt-2 tracking-tight">0</span>
+                        <span id="kpi-rel-imp-count" class="text-2xl xl:text-3xl font-black text-marca-magenta mt-2 tracking-tight">0</span>
                     </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
                         <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Mayor Alza Intermensual</span>
-                        <span id="kpi-rel-imp-alza" class="text-xl font-black text-red-500 mt-2 tracking-tight">-</span>
+                        <span id="kpi-rel-imp-alza" class="text-lg xl:text-xl font-black text-red-500 mt-2 tracking-tight">-</span>
                     </div>
                 </div>
 
                 <!-- Matriz Relación con Imputación -->
                 <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table id="table-rel-imp" class="w-full text-left text-xs text-gray-600">
-                            <thead id="thead-rel-imp" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold"></thead>
+                    <div class="overflow-auto max-h-[65vh]">
+                        <table id="table-rel-imp" class="w-full text-left text-[11px] text-gray-600">
+                            <thead id="thead-rel-imp" class="text-[11px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100 font-bold sticky top-0 z-20 shadow-sm"></thead>
                             <tbody id="tbody-rel-imp" class="divide-y divide-gray-50"></tbody>
-                            <tfoot id="tfoot-rel-imp" class="bg-gray-100 border-t-2 border-gray-200 font-black"></tfoot>
+                            <tfoot id="tfoot-rel-imp" class="bg-gray-100 border-t-2 border-gray-200 font-black sticky bottom-0 z-20"></tfoot>
                         </table>
                     </div>
                 </div>
@@ -715,6 +737,7 @@
 
         // Exponer funciones al ámbito global
         window.handleLogin = handleLogin;
+        window.toggleSidebar = toggleSidebar;
         window.changeTab = changeTab;
         window.renderApp = renderApp;
         window.renderCarga = renderCarga;
@@ -722,11 +745,6 @@
         window.renderCeo = renderCeo;
         window.renderRelacionPago = renderRelacionPago;
         window.renderRelacionImputacion = renderRelacionImputacion;
-        window.addImputacionRow = addImputacionRow;
-        window.removeImputacionRow = removeImputacionRow;
-        window.calcImputacionRestante = calcImputacionRestante;
-        window.openQuickImputacion = openQuickImputacion;
-        window.closeQuickImputacion = closeQuickImputacion;
         window.openModalServicio = openModalServicio;
         window.openModalGasto = openModalGasto;
         window.closeModal = closeModal;
@@ -737,6 +755,12 @@
         window.addPagoRow = addPagoRow;
         window.calcFaltaPagar = calcFaltaPagar;
         window.removePagoRow = removePagoRow;
+        window.addImputacionRow = addImputacionRow;
+        window.removeImputacionRow = removeImputacionRow;
+        window.calcImputacionRestante = calcImputacionRestante;
+        window.openQuickImputacion = openQuickImputacion;
+        window.closeQuickImputacion = closeQuickImputacion;
+        window.editFromQuickImputacion = editFromQuickImputacion;
         window.generarFijosDelMes = generarFijosDelMes;
         window.deleteGasto = deleteGasto;
         window.handleCeoInput = handleCeoInput;
@@ -756,7 +780,7 @@
             setTimeout(() => t.classList.add('translate-x-full'), 3000);
         }
 
-        function openConfirmModal(msg, onConfirm) {
+        function showConfirmModal(msg, onConfirm) {
             document.getElementById('confirm-msg').innerText = msg;
             pendingConfirmAction = onConfirm;
             document.getElementById('modal-confirm').classList.add('modal-active');
@@ -816,6 +840,11 @@
             document.getElementById('main-content-area').classList.remove('blur-sm-custom');
         }
 
+        function toggleSidebar() {
+            const aside = document.getElementById('main-aside');
+            if (aside) aside.classList.toggle('sidebar-collapsed');
+        }
+
         async function iniciarFirebase() {
             try {
                 document.getElementById('sync-title').innerText = 'CONECTANDO...';
@@ -827,7 +856,6 @@
                         const cloudData = snap.data();
                         appState = { ...appState, ...cloudData };
                         
-                        // Prevención en caso de datos faltantes en la nube vieja
                         if(!appState.presupuestosCEO) appState.presupuestosCEO = {};
                         if(!appState.gastos) appState.gastos = [];
                         
@@ -881,7 +909,7 @@
         }
 
         // ==========================================
-        // VISTAS
+        // NAVEGACIÓN Y VISTAS
         // ==========================================
 
         function changeTab(tab) {
@@ -891,18 +919,23 @@
                 btn.classList.add('text-gray-400');
             });
             const activeBtn = document.getElementById(`btn-${tab}`);
-            activeBtn.classList.add('active', 'text-white');
-            activeBtn.classList.remove('text-gray-400');
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'text-white');
+                activeBtn.classList.remove('text-gray-400');
+            }
 
             const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'relacion-pago', 'relacion-imputacion', 'config'];
-            vistas.forEach(t => document.getElementById(`view-${t}`).style.display = t === tab ? 'block' : 'none');
+            vistas.forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                if (el) el.style.display = t === tab ? 'block' : 'none';
+            });
 
             const titulos = {
                 'carga': ['Carga Mensual Operativa', 'Registro cronológico y gestión de pagos divididos.'],
                 'dashboard': ['Tablero General', 'Visión consolidada del año fiscal.'],
                 'comparativo': ['Diagnóstico Estratégico', 'Análisis detallado cruzando múltiples meses.'],
                 'ceo': ['Área de Liquidación CEO', 'Control de compromisos y total a pagar.'],
-                'relacion-pago': ['Relación con Pago', 'Flujo mensual real de desembolsos por servicio.'],
+                'relacion-pago': ['Relación con Pago', 'Flujo mensual real según cuándo se efectivizó cada pago.'],
                 'relacion-imputacion': ['Relación con Imputación de Impuesto', 'Costo real atribuido a cada mes para detectar subas y diferencias.'],
                 'config': ['Ajustes del Sistema', 'Configuración de PDVs y reglas de prorrateo.']
             };
@@ -923,6 +956,13 @@
             if (activeTab === 'config') renderConfig();
         }
 
+        function getGastoNombre(g) {
+            if (g.tipo === 'Fijo') {
+                return appState.serviciosMaster.find(s => s.id == g.servicioId)?.nombre || g.concepto || 'Srv. Borrado';
+            }
+            return g.concepto || 'Sin concepto';
+        }
+
         function getFactTable(yearFilter = null, monthFilter = null) {
             let facts = [];
             (appState.gastos || []).forEach(g => {
@@ -931,7 +971,7 @@
                 const pr = g.prorrateoAplicado || {}; 
                 Object.keys(pr).forEach(pdv => {
                     const pct = pr[pdv] || 0;
-                    if (pct > 0) facts.push({ id: g.id, ano: g.ano, mes: g.mesStr, tipo: g.tipo, concepto: g.concepto || (appState.serviciosMaster.find(s=>s.id == g.servicioId)?.nombre || 'Srv. Desc.'), pdv: pdv, importeParcial: (g.importeTotal * pct) / 100, estado: g.estado, vto: g.fechaVto });
+                    if (pct > 0) facts.push({ id: g.id, ano: g.ano, mes: g.mesStr, tipo: g.tipo, concepto: getGastoNombre(g), pdv: pdv, importeParcial: (g.importeTotal * pct) / 100, estado: g.estado, vto: g.fechaVto });
                 });
             });
             return facts;
@@ -945,15 +985,14 @@
             document.getElementById('tbody-carga').innerHTML = list.map(g => {
                 let badgeColor = g.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
                 let tipoBadge = g.tipo === 'Fijo' ? 'bg-gray-100 text-gray-700' : 'bg-pink-100 text-marca-magenta';
-                let nom = g.concepto;
-                if (g.tipo === 'Fijo') nom = appState.serviciosMaster.find(s=>s.id == g.servicioId)?.nombre || 'Srv. Borrado';
+                let nom = getGastoNombre(g);
 
                 let pagosStr = '<span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sin pagos</span>';
                 if (g.pagos && g.pagos.length > 0) {
                     pagosStr = g.pagos.map(p => `<div class="text-xs text-gray-600"><span class="font-bold">${p.metodo}:</span> ${fmt(p.monto)}</div>`).join('');
                 }
 
-                let vtoStr = g.fechaVto ? new Date(g.fechaVto).toLocaleDateString('es-AR', {day:'2-digit', month:'short'}) : '-';
+                let vtoStr = g.fechaVto ? new Date(g.fechaVto + 'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'short'}) : '-';
                 let isLate = (g.estado !== 'Pagado' && new Date(g.fechaVto) < new Date());
                 let vtoClass = isLate ? 'text-red-500 font-black bg-red-50 px-2 py-1 rounded-lg' : 'font-bold text-gray-600';
 
@@ -982,7 +1021,7 @@
             if(!appState.gastos) appState.gastos = [];
 
             appState.serviciosMaster.forEach(srv => {
-                const exists = appState.gastos.some(g => g.tipo === 'Fijo' && g.servicioId === srv.id && g.mesStr === mSel && g.ano === currentGlobalYear);
+                const exists = appState.gastos.some(g => g.tipo === 'Fijo' && g.servicioId == srv.id && g.mesStr === mSel && g.ano === currentGlobalYear);
                 if (!exists) {
                     appState.gastos.push({
                         id: Date.now() + Math.random(), tipo: 'Fijo', servicioId: srv.id,
@@ -1176,31 +1215,29 @@
             document.getElementById('lbl-ceo-gasto').innerText = `+ ${fmt(totalGastos)}`;
             document.getElementById('lbl-ceo-total').innerText = fmt(presupuestoARS + totalGastos);
 
+            const tfootCeo = document.getElementById('tfoot-ceo');
+            if (ceoGastos.length > 0) {
+                tfootCeo.classList.remove('hidden');
+                document.getElementById('tfoot-ceo-total').innerText = fmt(totalGastos);
+            } else {
+                tfootCeo.classList.add('hidden');
+            }
+
             document.getElementById('tbody-ceo').innerHTML = ceoGastos.map(g => {
-                let badgeColor = g.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                const estado = g.estado || 'Pendiente';
+                const badgeColor = estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
                 return `
                 <tr class="hover:bg-gray-50/50">
                     <td class="px-6 py-4 font-bold text-gray-500">${g.fechaVto || g.ano}</td>
                     <td class="px-6 py-4 font-black text-gray-800">${g.concepto}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${badgeColor}">${g.estado || 'Pendiente'}</span>
-                    </td>
+                    <td class="px-6 py-4"><span class="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest ${badgeColor}">${estado}</span></td>
                     <td class="px-6 py-4 font-black text-marca-magenta">${fmt(g.importeTotal)}</td>
                     <td class="px-6 py-4 text-right">
                         <button onclick="editGasto(${g.id})" class="text-marca-negro hover:bg-gray-100 bg-gray-50 px-3 py-1.5 rounded-xl text-xs font-black mr-1">Editar</button>
                         <button onclick="deleteGasto(${g.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
-                </tr>
-            `}).join('') || `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold">Sin gastos extra registrados.</td></tr>`;
-            
-            const tfoot = document.getElementById('tfoot-ceo');
-            if (ceoGastos.length > 0) {
-                tfoot.classList.remove('hidden');
-                document.getElementById('tfoot-ceo-total').innerText = fmt(totalGastos);
-            } else {
-                tfoot.classList.add('hidden');
-            }
-
+                </tr>`;
+            }).join('') || `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold">Sin gastos extra registrados.</td></tr>`;
             lucide.createIcons();
         }
 
@@ -1240,15 +1277,8 @@
         }
 
         // ==========================================
-        // NUEVAS VISTAS: RELACIÓN CON PAGO E IMPUTACIÓN
+        // NUEVAS VISTAS: RELACIÓN CON PAGO & RELACIÓN CON IMPUTACIÓN
         // ==========================================
-
-        function getGastoNombre(g) {
-            if (g.tipo === 'Fijo') {
-                return appState.serviciosMaster.find(s => s.id == g.servicioId)?.nombre || 'Srv. Borrado';
-            }
-            return g.concepto || 'Sin concepto';
-        }
 
         function filtrarPorTipoRelacion(g, filterVal) {
             if (filterVal === 'fijos-ceo') return g.tipo === 'Fijo' || g.tipo === 'CEO';
@@ -1257,10 +1287,24 @@
             return true; // 'todos'
         }
 
+        function getMesesVisibles(periodoVal, mesesConDatos) {
+            const todos = appState.meses;
+            if (periodoVal === 's1') return todos.slice(0, 6);
+            if (periodoVal === 's2') return todos.slice(6, 12);
+            if (periodoVal === 'con-datos') {
+                const activos = todos.filter(m => mesesConDatos[m] > 0);
+                return activos.length > 0 ? activos : todos;
+            }
+            return todos;
+        }
+
         function renderRelacionPago() {
             const filterVal = document.getElementById('rel-pago-filter').value;
+            const periodoVal = document.getElementById('rel-pago-periodo').value;
             const meses = appState.meses;
             const matrix = {};
+            const totMesGlobal = {};
+            meses.forEach(m => totMesGlobal[m] = 0);
 
             (appState.gastos || []).forEach(g => {
                 if (!filtrarPorTipoRelacion(g, filterVal)) return;
@@ -1294,49 +1338,55 @@
                 }
                 matrix[nombre].meses[pagoMes] += montoPagado;
                 matrix[nombre].total += montoPagado;
+                totMesGlobal[pagoMes] += montoPagado;
             });
 
+            const mesesVisibles = getMesesVisibles(periodoVal, totMesGlobal);
+
             // Encabezado
-            let thHtml = `<tr><th class="px-5 py-4 sticky left-0 bg-gray-50 z-10 min-w-[200px]">Servicio / Concepto</th>`;
-            meses.forEach(m => thHtml += `<th class="px-3 py-4 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
-            thHtml += `<th class="px-4 py-4 text-right text-marca-negro whitespace-nowrap">Total Año</th></tr>`;
+            let thHtml = `<tr><th class="px-4 py-3.5 sticky left-0 bg-gray-50 z-30 min-w-[180px] max-w-[230px] border-r border-gray-100">Servicio / Concepto</th>`;
+            mesesVisibles.forEach(m => thHtml += `<th class="px-2.5 py-3.5 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
+            thHtml += `<th class="px-3 py-3.5 text-right text-marca-negro whitespace-nowrap">Total</th></tr>`;
             document.getElementById('thead-rel-pago').innerHTML = thHtml;
 
             const nombres = Object.keys(matrix).sort((a, b) => matrix[b].total - matrix[a].total);
             const totMes = {};
-            meses.forEach(m => totMes[m] = 0);
+            mesesVisibles.forEach(m => totMes[m] = 0);
             let granTotal = 0;
 
             let tbodyHtml = '';
             if (nombres.length === 0) {
-                tbodyHtml = `<tr><td colspan="14" class="text-center py-10 text-gray-400 font-bold">No hay pagos registrados en ${currentGlobalYear} para este filtro.</td></tr>`;
+                tbodyHtml = `<tr><td colspan="${mesesVisibles.length + 2}" class="text-center py-10 text-gray-400 font-bold">No hay pagos registrados en ${currentGlobalYear} para este filtro.</td></tr>`;
             } else {
                 nombres.forEach(nom => {
                     const row = matrix[nom];
-                    const badge = row.tipo === 'CEO' ? `<span class="ml-1.5 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
-                    let tr = `<tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="px-5 py-3.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 whitespace-nowrap">${nom}${badge}</td>`;
-                    meses.forEach(m => {
+                    const badge = row.tipo === 'CEO' ? `<span class="ml-1 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
+                    let totalFilaVisible = 0;
+                    let celdasMeses = '';
+                    mesesVisibles.forEach(m => {
                         const val = row.meses[m] || 0;
                         totMes[m] += val;
-                        tr += `<td class="px-3 py-3.5 text-right whitespace-nowrap ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">${val > 0 ? fmt(val) : '-'}</td>`;
+                        totalFilaVisible += val;
+                        celdasMeses += `<td class="px-2.5 py-2.5 text-right whitespace-nowrap tabular-nums ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">${val > 0 ? fmt(val) : '-'}</td>`;
                     });
-                    granTotal += row.total;
-                    tr += `<td class="px-4 py-3.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap">${fmt(row.total)}</td></tr>`;
-                    tbodyHtml += tr;
+                    granTotal += totalFilaVisible;
+                    tbodyHtml += `<tr class="hover:bg-gray-50/70 transition-colors">
+                        <td title="${nom.replace(/"/g, '&quot;')}" class="px-4 py-2.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 max-w-[230px] truncate">${nom}${badge}</td>
+                        ${celdasMeses}
+                        <td class="px-3 py-2.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap tabular-nums">${fmt(totalFilaVisible)}</td></tr>`;
                 });
             }
             document.getElementById('tbody-rel-pago').innerHTML = tbodyHtml;
 
             // Pie de tabla (Totales)
-            let tfHtml = `<tr><td class="px-5 py-4 text-marca-negro sticky left-0 bg-gray-100 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
+            let tfHtml = `<tr><td class="px-4 py-3.5 text-marca-negro sticky left-0 bg-gray-100 z-30 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
             let maxMes = '-', maxVal = 0, mesesConPago = 0;
-            meses.forEach(m => {
+            mesesVisibles.forEach(m => {
                 if (totMes[m] > 0) mesesConPago++;
                 if (totMes[m] > maxVal) { maxVal = totMes[m]; maxMes = m; }
-                tfHtml += `<td class="px-3 py-4 text-right text-marca-negro whitespace-nowrap">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
+                tfHtml += `<td class="px-2.5 py-3.5 text-right text-marca-negro whitespace-nowrap tabular-nums">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
             });
-            tfHtml += `<td class="px-4 py-4 text-right text-marca-magenta text-sm whitespace-nowrap">${fmt(granTotal)}</td></tr>`;
+            tfHtml += `<td class="px-3 py-3.5 text-right text-marca-magenta text-xs whitespace-nowrap tabular-nums">${fmt(granTotal)}</td></tr>`;
             document.getElementById('tfoot-rel-pago').innerHTML = tfHtml;
 
             // KPIs
@@ -1348,9 +1398,12 @@
 
         function renderRelacionImputacion() {
             const filterVal = document.getElementById('rel-imp-filter').value;
+            const periodoVal = document.getElementById('rel-imp-periodo').value;
             const showVar = document.getElementById('rel-imp-show-var').checked;
             const meses = appState.meses;
             const matrix = {};
+            const totMesGlobal = {};
+            meses.forEach(m => totMesGlobal[m] = 0);
 
             (appState.gastos || []).forEach(g => {
                 if (g.ano !== currentGlobalYear) return;
@@ -1372,48 +1425,54 @@
                             matrix[nombre].meses[imp.mes] += mnt;
                             matrix[nombre].hasSplit[imp.mes] = true;
                             matrix[nombre].total += mnt;
+                            totMesGlobal[imp.mes] += mnt;
                         }
                     });
                 } else {
                     if (matrix[nombre].meses[g.mesStr] !== undefined) {
                         matrix[nombre].meses[g.mesStr] += importe;
                         matrix[nombre].total += importe;
+                        totMesGlobal[g.mesStr] += importe;
                     }
                 }
             });
 
+            const mesesVisibles = getMesesVisibles(periodoVal, totMesGlobal);
+
             // Encabezado
-            let thHtml = `<tr><th class="px-5 py-4 sticky left-0 bg-gray-50 z-10 min-w-[200px]">Servicio / Concepto</th>`;
-            meses.forEach(m => thHtml += `<th class="px-3 py-4 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
-            thHtml += `<th class="px-4 py-4 text-right text-marca-negro whitespace-nowrap">Total Año</th>`;
-            thHtml += `<th class="px-4 py-4 text-center whitespace-nowrap">Dividir</th></tr>`;
+            let thHtml = `<tr><th class="px-4 py-3.5 sticky left-0 bg-gray-50 z-30 min-w-[180px] max-w-[230px] border-r border-gray-100">Servicio / Concepto</th>`;
+            mesesVisibles.forEach(m => thHtml += `<th class="px-2.5 py-3.5 text-right whitespace-nowrap">${m.substring(0, 3)}</th>`);
+            thHtml += `<th class="px-3 py-3.5 text-right text-marca-negro whitespace-nowrap">Total</th>`;
+            thHtml += `<th class="px-2.5 py-3.5 text-center whitespace-nowrap">Dividir</th></tr>`;
             document.getElementById('thead-rel-imp').innerHTML = thHtml;
 
             const nombres = Object.keys(matrix).sort((a, b) => matrix[b].total - matrix[a].total);
             const totMes = {};
-            meses.forEach(m => totMes[m] = 0);
+            mesesVisibles.forEach(m => totMes[m] = 0);
             let granTotal = 0;
             let mayorAlzaPct = 0;
             let mayorAlzaTexto = '-';
 
             let tbodyHtml = '';
             if (nombres.length === 0) {
-                tbodyHtml = `<tr><td colspan="15" class="text-center py-10 text-gray-400 font-bold">No hay gastos cargados en ${currentGlobalYear} para este filtro.</td></tr>`;
+                tbodyHtml = `<tr><td colspan="${mesesVisibles.length + 3}" class="text-center py-10 text-gray-400 font-bold">No hay gastos cargados en ${currentGlobalYear} para este filtro.</td></tr>`;
             } else {
                 nombres.forEach(nom => {
                     const row = matrix[nom];
                     const safeNom = nom.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const badge = row.tipo === 'CEO' ? `<span class="ml-1.5 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
-                    let tr = `<tr class="hover:bg-gray-50/70 transition-colors">
-                        <td onclick="openQuickImputacion('${safeNom}')" class="px-5 py-3.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 whitespace-nowrap cursor-pointer hover:text-marca-magenta transition-colors">${nom}${badge}</td>`;
+                    const badge = row.tipo === 'CEO' ? `<span class="ml-1 text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-black">CEO</span>` : '';
+                    let totalFilaVisible = 0;
+                    let celdasMeses = '';
 
-                    meses.forEach((m, idx) => {
+                    mesesVisibles.forEach(m => {
                         const val = row.meses[m] || 0;
                         totMes[m] += val;
+                        totalFilaVisible += val;
 
+                        const realIdx = meses.indexOf(m);
                         let varHtml = '';
-                        if (showVar && val > 0 && idx > 0) {
-                            const prevVal = row.meses[meses[idx - 1]] || 0;
+                        if (showVar && val > 0 && realIdx > 0) {
+                            const prevVal = row.meses[meses[realIdx - 1]] || 0;
                             if (prevVal > 0) {
                                 const diffPct = ((val - prevVal) / prevVal) * 100;
                                 if (diffPct > mayorAlzaPct) {
@@ -1423,7 +1482,7 @@
                                 if (Math.abs(diffPct) >= 0.1) {
                                     const cls = diffPct > 0 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50';
                                     const sign = diffPct > 0 ? '+' : '';
-                                    varHtml = `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${cls}">${sign}${diffPct.toFixed(1)}%</span></div>`;
+                                    varHtml = `<div class="mt-0.5"><span class="px-1 py-0.5 rounded text-[9px] font-black ${cls}">${sign}${diffPct.toFixed(1)}%</span></div>`;
                                 } else {
                                     varHtml = `<div class="mt-0.5"><span class="text-[9px] font-bold text-gray-400">0%</span></div>`;
                                 }
@@ -1431,29 +1490,31 @@
                         }
 
                         const splitDot = row.hasSplit[m] ? `<span title="Imputación dividida manualmente" class="inline-block w-1.5 h-1.5 rounded-full bg-marca-magenta mr-1 align-middle"></span>` : '';
-                        tr += `<td onclick="openQuickImputacion('${safeNom}', '${m}')" class="px-3 py-3 text-right whitespace-nowrap cursor-pointer hover:bg-marca-magentalight/40 transition-colors ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">
+                        celdasMeses += `<td onclick="openQuickImputacion('${safeNom}', '${m}')" class="px-2.5 py-2 text-right whitespace-nowrap tabular-nums cursor-pointer hover:bg-marca-magentalight/40 transition-colors ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">
                             <div>${splitDot}${val > 0 ? fmt(val) : '-'}</div>${varHtml}
                         </td>`;
                     });
 
-                    granTotal += row.total;
-                    tr += `<td class="px-4 py-3.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap">${fmt(row.total)}</td>
-                        <td class="px-4 py-3 text-center whitespace-nowrap">
-                            <button onclick="openQuickImputacion('${safeNom}')" class="text-marca-negro hover:bg-marca-magentalight hover:text-marca-magenta bg-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors inline-flex items-center gap-1">
-                                <i data-lucide="split" class="w-3.5 h-3.5"></i> Editar
+                    granTotal += totalFilaVisible;
+                    tbodyHtml += `<tr class="hover:bg-gray-50/70 transition-colors">
+                        <td title="${nom.replace(/"/g, '&quot;')}" onclick="openQuickImputacion('${safeNom}')" class="px-4 py-2.5 font-black text-gray-800 sticky left-0 bg-white border-r border-gray-100 max-w-[230px] truncate cursor-pointer hover:text-marca-magenta transition-colors">${nom}${badge}</td>
+                        ${celdasMeses}
+                        <td class="px-3 py-2.5 text-right font-black text-marca-magenta bg-gray-50/50 whitespace-nowrap tabular-nums">${fmt(totalFilaVisible)}</td>
+                        <td class="px-2.5 py-2 text-center whitespace-nowrap">
+                            <button onclick="openQuickImputacion('${safeNom}')" class="text-marca-negro hover:bg-marca-magentalight hover:text-marca-magenta bg-gray-100 px-2.5 py-1 rounded-xl text-[10px] font-black transition-colors inline-flex items-center gap-1">
+                                <i data-lucide="split" class="w-3 h-3"></i> Editar
                             </button>
                         </td></tr>`;
-                    tbodyHtml += tr;
                 });
             }
             document.getElementById('tbody-rel-imp').innerHTML = tbodyHtml;
 
             // Pie de tabla (Totales)
-            let tfHtml = `<tr><td class="px-5 py-4 text-marca-negro sticky left-0 bg-gray-100 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
-            meses.forEach(m => {
-                tfHtml += `<td class="px-3 py-4 text-right text-marca-negro whitespace-nowrap">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
+            let tfHtml = `<tr><td class="px-4 py-3.5 text-marca-negro sticky left-0 bg-gray-100 z-30 border-r border-gray-200 uppercase text-[11px]">Totales</td>`;
+            mesesVisibles.forEach(m => {
+                tfHtml += `<td class="px-2.5 py-3.5 text-right text-marca-negro whitespace-nowrap tabular-nums">${totMes[m] > 0 ? fmt(totMes[m]) : '-'}</td>`;
             });
-            tfHtml += `<td class="px-4 py-4 text-right text-marca-magenta text-sm whitespace-nowrap">${fmt(granTotal)}</td><td></td></tr>`;
+            tfHtml += `<td class="px-3 py-3.5 text-right text-marca-magenta text-xs whitespace-nowrap tabular-nums">${fmt(granTotal)}</td><td></td></tr>`;
             document.getElementById('tfoot-rel-imp').innerHTML = tfHtml;
 
             // KPIs
@@ -1463,54 +1524,52 @@
             lucide.createIcons();
         }
 
-        // OPCIÓN B: Modal rápido desde la tabla de Imputación
-        function openQuickImputacion(servicioNombre, mesClick = null) {
+        // Modal Acceso Rápido de Imputación (Opción B)
+        function openQuickImputacion(serviceName, monthFilter = null) {
             const filterVal = document.getElementById('rel-imp-filter').value;
-            const gastosSrv = (appState.gastos || []).filter(g => {
+            let matches = (appState.gastos || []).filter(g => {
                 if (g.ano !== currentGlobalYear) return false;
                 if (!filtrarPorTipoRelacion(g, filterVal)) return false;
-                return getGastoNombre(g) === servicioNombre && (parseFloat(g.importeTotal) || 0) > 0;
+                if (getGastoNombre(g) !== serviceName) return false;
+                if (monthFilter) {
+                    const inSplit = (g.imputacionMeses || []).some(im => im.mes === monthFilter && parseFloat(im.monto) > 0);
+                    return g.mesStr === monthFilter || inSplit;
+                }
+                return true;
             });
 
-            // Si hizo clic en un mes específico y hay un único gasto en ese mes, abrimos directo el editor
-            if (mesClick) {
-                const delMes = gastosSrv.filter(g => {
-                    if (g.imputacionMeses && g.imputacionMeses.length > 0) {
-                        return g.imputacionMeses.some(i => i.mes === mesClick && parseFloat(i.monto) > 0);
-                    }
-                    return g.mesStr === mesClick;
-                });
-                if (delMes.length === 1) {
-                    editGasto(delMes[0].id, true);
-                    return;
-                }
+            // Si filtró por mes específico y no hubo coincidencia exacta, mostramos todos los del servicio en el año
+            if (matches.length === 0 && monthFilter) {
+                matches = (appState.gastos || []).filter(g => g.ano === currentGlobalYear && filtrarPorTipoRelacion(g, filterVal) && getGastoNombre(g) === serviceName);
             }
 
-            document.getElementById('quick-imp-title').innerText = servicioNombre;
-            document.getElementById('quick-imp-subtitle').innerText = `Facturas cargadas en ${currentGlobalYear}. Elige una para dividir o ajustar su imputación mensual.`;
+            document.getElementById('quick-imp-title').innerText = serviceName;
+            document.getElementById('quick-imp-subtitle').innerText = monthFilter
+                ? `Facturas registradas vinculadas a ${monthFilter} (${currentGlobalYear}).`
+                : `Facturas registradas en ${currentGlobalYear}. Selecciona una para dividir su imputación.`;
 
             const listEl = document.getElementById('quick-imp-list');
-            if (gastosSrv.length === 0) {
-                listEl.innerHTML = `<p class="text-center py-8 text-gray-400 font-bold text-sm">No se encontraron facturas con importe mayor a $0.</p>`;
+            if (matches.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-8 text-gray-400 font-bold text-sm">No se encontraron facturas para este servicio.</div>`;
             } else {
-                listEl.innerHTML = gastosSrv.map(g => {
-                    const tieneSplit = g.imputacionMeses && g.imputacionMeses.length > 0;
-                    const detalleSplit = tieneSplit
-                        ? g.imputacionMeses.map(i => `<span class="inline-block bg-marca-magentalight text-marca-magenta px-2 py-0.5 rounded-lg text-[10px] font-black mr-1 mb-1">${i.mes}: ${fmt(i.monto)}</span>`).join('')
-                        : `<span class="text-[11px] font-semibold text-gray-400">100% imputado a ${g.mesStr}</span>`;
+                matches.sort((a, b) => appState.meses.indexOf(a.mesStr) - appState.meses.indexOf(b.mesStr));
+                listEl.innerHTML = matches.map(g => {
+                    const hasSplit = g.imputacionMeses && g.imputacionMeses.length > 0;
+                    const splitDetail = hasSplit
+                        ? g.imputacionMeses.map(im => `<span class="inline-block bg-marca-magentalight text-marca-magenta px-2 py-0.5 rounded-lg text-[10px] font-black mr-1 mt-1">${im.mes.substring(0,3)}: ${fmt(im.monto)}</span>`).join('')
+                        : `<span class="inline-block bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg text-[10px] font-bold mt-1">100% imputado a ${g.mesStr}</span>`;
 
-                    return `
-                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between gap-4">
+                    return `<div class="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:border-marca-magenta/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs font-black text-marca-negro uppercase">${g.mesStr}</span>
+                                <span class="text-xs font-black uppercase tracking-wider text-marca-negro">${g.mesStr} ${g.ano}</span>
                                 <span class="text-xs font-bold text-gray-400">• Vto: ${g.fechaVto || '-'}</span>
                             </div>
                             <div class="text-base font-black text-marca-magenta mt-0.5">${fmt(g.importeTotal)}</div>
-                            <div class="mt-2">${detalleSplit}</div>
+                            <div class="mt-1">${splitDetail}</div>
                         </div>
-                        <button onclick="closeQuickImputacion(); editGasto(${g.id}, true)" class="bg-marca-negro hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-black flex-shrink-0 transition-colors">
-                            Dividir / Editar
+                        <button onclick="editFromQuickImputacion(${g.id})" class="bg-marca-negro hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 flex-shrink-0">
+                            <i data-lucide="split" class="w-3.5 h-3.5"></i> Dividir / Editar
                         </button>
                     </div>`;
                 }).join('');
@@ -1524,8 +1583,17 @@
             document.getElementById('modal-imputacion-rapida').classList.remove('modal-active');
         }
 
+        function editFromQuickImputacion(id) {
+            closeQuickImputacion();
+            window.editGasto(id);
+            setTimeout(() => {
+                const sec = document.getElementById('section-imputacion-meses');
+                if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 150);
+        }
+
         // ==========================================
-        // CONFIGURACIÓN (PDVs y MAESTRO DE SERVICIOS)
+        // CONFIGURACIÓN (PDVS Y MAESTRO)
         // ==========================================
 
         function renderConfig() {
@@ -1562,9 +1630,8 @@
                 input.value = ''; autoSaveToCloud(); renderConfig();
             }
         }
-
         function removePDV(idx) {
-            openConfirmModal('¿Eliminar PDV? El historial de gastos anteriores se mantiene intacto.', () => {
+            showConfirmModal('¿Eliminar este Punto de Venta? El historial se mantiene intacto.', () => {
                 appState.puntosDeVenta.splice(idx, 1);
                 autoSaveToCloud();
                 renderConfig();
@@ -1572,7 +1639,7 @@
         }
 
         // ==========================================
-        // GESTIÓN DE FORMULARIOS (MODALES)
+        // GESTIÓN DE FORMULARIOS (SERVICIO Y GASTO)
         // ==========================================
 
         function openModalServicio() {
@@ -1648,13 +1715,18 @@
                 wCpt.classList.remove('hidden');
             }
 
-            document.getElementById('pagos-container').innerHTML = ''; calcFaltaPagar();
-            document.getElementById('imputaciones-container').innerHTML = ''; calcImputacionRestante();
-            document.getElementById('gasto-importe').oninput = () => { calcFaltaPagar(); calcImputacionRestante(); };
+            document.getElementById('pagos-container').innerHTML = '';
+            document.getElementById('imputaciones-container').innerHTML = '';
+            calcFaltaPagar();
+            calcImputacionRestante();
+
+            const impInput = document.getElementById('gasto-importe');
+            impInput.oninput = () => { calcFaltaPagar(); calcImputacionRestante(); };
             document.getElementById('modal-container').classList.add('modal-active');
+            lucide.createIcons();
         }
 
-        window.editGasto = function(id, focusImputacion = false) {
+        window.editGasto = function(id) {
             const g = (appState.gastos || []).find(x=>x.id==id);
             if(!g) return;
             openModalGasto(g.tipo);
@@ -1667,7 +1739,7 @@
             else document.getElementById('gasto-concepto').value = g.concepto;
             
             if(g.tipo === 'Variable') {
-                let pdvAssigned = Object.keys(g.prorrateoAplicado).find(k => g.prorrateoAplicado[k] === 100);
+                let pdvAssigned = Object.keys(g.prorrateoAplicado || {}).find(k => g.prorrateoAplicado[k] === 100);
                 if(pdvAssigned) document.getElementById('gasto-pdv').value = pdvAssigned;
             }
 
@@ -1680,24 +1752,17 @@
                     lastRow.querySelector('select').value = p.metodo; lastRow.querySelector('input').value = p.monto;
                 });
             }
-            calcFaltaPagar();
 
-            // Cargar imputaciones por mes si existen
             const impCont = document.getElementById('imputaciones-container');
             impCont.innerHTML = '';
             if (g.imputacionMeses && g.imputacionMeses.length > 0) {
-                g.imputacionMeses.forEach(imp => {
-                    addImputacionRow(imp.mes, imp.monto);
+                g.imputacionMeses.forEach(im => {
+                    addImputacionRow(im.mes, im.monto);
                 });
             }
-            calcImputacionRestante();
 
-            if (focusImputacion) {
-                setTimeout(() => {
-                    const sec = document.getElementById('section-imputacion-meses');
-                    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 150);
-            }
+            calcFaltaPagar();
+            calcImputacionRestante();
         }
 
         function saveGasto(e) {
@@ -1711,30 +1776,29 @@
                 if(mnt > 0) { pagos.push({metodo: met, monto: mnt}); totalPagado += mnt; }
             });
 
-            if(totalPagado > importe) { showToast('El total pagado no puede superar el importe de la factura.'); return; }
+            if(totalPagado > importe + 0.01) { showToast('El total pagado no puede superar el importe de la factura.'); return; }
 
-            // Leer imputaciones por mes (opcional)
-            let imputacionMeses = [];
-            let totalImputado = 0;
+            let imputaciones = []; let totalImputado = 0;
             document.querySelectorAll('.imputacion-row').forEach(row => {
-                const mesImp = row.querySelector('select').value;
-                const mntImp = parseFloat(row.querySelector('input').value) || 0;
-                if (mntImp > 0) {
-                    imputacionMeses.push({ mes: mesImp, monto: mntImp });
-                    totalImputado += mntImp;
+                const mes = row.querySelector('select').value;
+                const mnt = parseFloat(row.querySelector('input').value) || 0;
+                if (mnt > 0) {
+                    imputaciones.push({ mes: mes, monto: mnt });
+                    totalImputado += mnt;
                 }
             });
 
-            if (imputacionMeses.length > 0 && Math.abs(totalImputado - importe) > 0.05) {
-                showToast('La suma de imputaciones por mes debe coincidir con el importe total.');
+            if (imputaciones.length > 0 && Math.abs(totalImputado - importe) > 0.05) {
+                showToast('La suma de meses imputados debe coincidir con el importe total.');
                 return;
             }
 
             let obj = {
                 tipo: tipo, mesStr: document.getElementById('gasto-mes-impacto').value, ano: currentGlobalYear,
                 fechaVto: document.getElementById('gasto-vto').value, fechaPago: document.getElementById('gasto-pago-fecha').value,
-                importeTotal: importe, estado: (totalPagado >= importe && importe > 0) ? 'Pagado' : 'Pendiente', pagos: pagos,
-                imputacionMeses: imputacionMeses
+                importeTotal: importe, estado: (totalPagado >= importe - 0.01 && importe > 0) ? 'Pagado' : 'Pendiente',
+                pagos: pagos,
+                imputacionMeses: imputaciones
             };
 
             if (tipo === 'Fijo') {
@@ -1760,7 +1824,7 @@
         }
 
         function deleteGasto(id) {
-            openConfirmModal('¿Eliminar este gasto permanentemente?', () => {
+            showConfirmModal('¿Eliminar este gasto permanentemente?', () => {
                 appState.gastos = appState.gastos.filter(g => g.id != id);
                 autoSaveToCloud();
                 renderApp();
@@ -1784,17 +1848,17 @@
             let pagos = 0; document.querySelectorAll('.pago-row input').forEach(i => pagos += (parseFloat(i.value)||0));
             let falta = tot - pagos;
             const el = document.getElementById('gasto-falta-pagar');
-            el.innerText = fmt(falta); el.className = falta <= 0 ? 'text-xl font-black text-green-500' : 'text-xl font-black text-red-500';
+            el.innerText = fmt(falta); el.className = falta <= 0.01 ? 'text-xl font-black text-green-500' : 'text-xl font-black text-red-500';
         }
 
         function addImputacionRow(defaultMes = null, defaultMonto = '') {
             const cont = document.getElementById('imputaciones-container');
             const row = document.createElement('div');
-            const mesActual = defaultMes || document.getElementById('gasto-mes-impacto').value || appState.meses[0];
             row.className = 'imputacion-row flex gap-3 items-center bg-white p-2 rounded-2xl border border-pink-100 shadow-sm';
+            const mesBase = defaultMes || document.getElementById('gasto-mes-impacto').value || appState.meses[0];
             row.innerHTML = `
                 <select class="flex-1 text-sm font-bold text-gray-700 border-none bg-transparent p-2 outline-none">
-                    ${appState.meses.map(m => `<option value="${m}" ${m === mesActual ? 'selected' : ''}>${m}</option>`).join('')}
+                    ${appState.meses.map(m => `<option value="${m}" ${m === mesBase ? 'selected' : ''}>${m}</option>`).join('')}
                 </select>
                 <input type="number" step="0.01" value="${defaultMonto}" class="w-32 text-base font-black border border-gray-200 rounded-xl p-2.5 text-right outline-none focus:ring-2 focus:ring-marca-magenta" placeholder="$0.00" oninput="calcImputacionRestante()">
                 <button type="button" onclick="removeImputacionRow(this)" class="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-xl"><i data-lucide="minus" class="w-4 h-4"></i></button>
@@ -1818,9 +1882,9 @@
             }
             box.classList.remove('hidden');
             const tot = parseFloat(document.getElementById('gasto-importe').value) || 0;
-            let suma = 0;
-            rows.forEach(r => suma += (parseFloat(r.querySelector('input').value) || 0));
-            const rest = tot - suma;
+            let sum = 0;
+            rows.forEach(r => sum += (parseFloat(r.querySelector('input').value) || 0));
+            const rest = tot - sum;
             const el = document.getElementById('gasto-imputacion-restante');
             el.innerText = fmt(rest);
             el.className = Math.abs(rest) <= 0.05 ? 'text-base font-black text-green-600' : 'text-base font-black text-red-500';
@@ -1842,23 +1906,21 @@
         // EXPORTACIÓN A PDF
         // ==========================================
 
-        function extractTableHTML(tbodyId, theadId, skipLastCol = true) {
-            let html = '<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; font-family: sans-serif;">';
+        function extractTableHTML(tbodyId, theadId, skipLastCol = true, tfootId = null, compact = false) {
+            const fontSize = compact ? '9px' : '11px';
+            const pad = compact ? '5px 4px' : '8px';
+            let html = `<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: ${fontSize}; font-family: sans-serif;">`;
             if(theadId) {
-                const tr = document.getElementById(theadId).querySelector('tr');
+                const tr = document.getElementById(theadId)?.querySelector('tr');
                 if(tr) {
-                    html += '<thead style="background: #f4f4f5; color: #52525b; font-size: 10px; text-transform: uppercase;"><tr>';
+                    html += `<thead style="background: #f4f4f5; color: #52525b; font-size: ${compact ? '8px' : '10px'}; text-transform: uppercase;"><tr>`;
                     const ths = tr.querySelectorAll('th');
                     const len = skipLastCol ? ths.length - 1 : ths.length;
                     for(let i=0; i<len; i++) {
                         const align = ths[i].classList.contains('text-right') ? 'right' : 'left';
-                        html += `<th style="padding: 8px; border-bottom: 2px solid #e4e4e7; text-align: ${align};">${ths[i].innerHTML}</th>`;
+                        html += `<th style="padding: ${pad}; border-bottom: 2px solid #e4e4e7; text-align: ${align};">${ths[i].innerText}</th>`;
                     }
                     html += '</tr></thead>';
-                }
-            } else {
-                if(tbodyId === 'tbody-ceo') {
-                    html += '<thead style="background: #f4f4f5; color: #52525b; font-size: 10px; text-transform: uppercase;"><tr><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Fecha</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Concepto</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7;">Estado</th><th style="padding: 8px; border-bottom: 2px solid #e4e4e7; text-align: right;">Importe</th></tr></thead>';
                 }
             }
 
@@ -1868,69 +1930,19 @@
                 tbody.querySelectorAll('tr').forEach(tr => {
                     html += '<tr>';
                     const tds = tr.querySelectorAll('td');
-                    const len = skipLastCol ? tds.length - 1 : tds.length;
-                    for(let i=0; i<len; i++) {
-                        const align = tds[i].classList.contains('text-right') || (tbodyId === 'tbody-ceo' && i === 3) ? 'right' : 'left';
-                        let fwStyle = tds[i].classList.contains('font-black') ? 'bold' : 'normal';
-                        
-                        let content = tds[i].innerHTML;
-                        if(content.includes('Pendiente') || content.includes('PENDIENTE')) content = '<b style="color:#dc2626">PENDIENTE</b>';
-                        else if(content.includes('Pagado') || content.includes('PAGADO')) content = '<b style="color:#16a34a">PAGADO</b>';
-                        
-                        html += `<td style="padding: 8px; border-bottom: 1px solid #f4f4f5; text-align: ${align}; font-weight: ${fwStyle};">${content}</td>`;
-                    }
-                    html += '</tr>';
-                });
-                html += '</tbody>';
-            }
-
-            if (tbodyId === 'tbody-ceo') {
-                const tfoot = document.getElementById('tfoot-ceo');
-                if (tfoot && !tfoot.classList.contains('hidden')) {
-                    html += '<tfoot style="background: #f4f4f5;"><tr>';
-                    html += `<td colspan="3" style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 10px; color: #52525b; text-transform: uppercase;">Total Gastos CEO</td>`;
-                    const total = document.getElementById('tfoot-ceo-total').innerText;
-                    html += `<td style="padding: 8px; border-top: 1px solid #e4e4e7; text-align: right; font-weight: bold; font-size: 12px; color: #E4007C;">${total}</td>`;
-                    html += '</tr></tfoot>';
-                }
-            }
-
-            html += '</table>';
-            return html;
-        }
-
-        function extractMatrixPDFHTML(tableId, skipLastCol = false) {
-            const table = document.getElementById(tableId);
-            if (!table) return '';
-            let html = '<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 8.5px; font-family: sans-serif;">';
-
-            const thead = table.querySelector('thead');
-            if (thead) {
-                html += '<thead style="background: #f4f4f5; color: #52525b; text-transform: uppercase;"><tr>';
-                const ths = thead.querySelectorAll('th');
-                const len = skipLastCol ? ths.length - 1 : ths.length;
-                for (let i = 0; i < len; i++) {
-                    const align = i === 0 ? 'left' : 'right';
-                    html += `<th style="padding: 5px 3px; border-bottom: 2px solid #e4e4e7; text-align: ${align};">${ths[i].innerText}</th>`;
-                }
-                html += '</tr></thead>';
-            }
-
-            const tbody = table.querySelector('tbody');
-            if (tbody) {
-                html += '<tbody style="color: #27272a;">';
-                tbody.querySelectorAll('tr').forEach(tr => {
-                    html += '<tr>';
-                    const tds = tr.querySelectorAll('td');
-                    if (tds.length === 1) {
-                        html += `<td colspan="14" style="padding: 10px; text-align: center; color: #71717a;">${tds[0].innerText}</td>`;
+                    if (tds.length === 1 && tds[0].hasAttribute('colspan')) {
+                        html += `<td colspan="15" style="padding: 12px; text-align: center; color: #71717a;">${tds[0].innerText}</td>`;
                     } else {
-                        const len = skipLastCol ? tds.length - 1 : tds.length;
-                        for (let i = 0; i < len; i++) {
-                            const align = i === 0 ? 'left' : 'right';
-                            const fw = (i === 0 || i === len - 1) ? 'bold' : 'normal';
-                            const col = (i === len - 1) ? '#E4007C' : '#27272a';
-                            html += `<td style="padding: 4px 3px; border-bottom: 1px solid #f4f4f5; text-align: ${align}; font-weight: ${fw}; color: ${col};">${tds[i].innerText.replace(/\n/g, '<br>')}</td>`;
+                        const len = skipLastCol ? Math.max(0, tds.length - 1) : tds.length;
+                        for(let i=0; i<len; i++) {
+                            const align = tds[i].classList.contains('text-right') ? 'right' : 'left';
+                            let fwStyle = (tds[i].classList.contains('font-black') || tds[i].classList.contains('font-bold')) ? 'bold' : 'normal';
+                            
+                            let content = tds[i].innerHTML;
+                            if(content.includes('Pendiente') && !compact) content = '<b style="color:#dc2626">PENDIENTE</b>';
+                            else if(content.includes('Pagado') && !compact) content = '<b style="color:#16a34a">PAGADO</b>';
+                            
+                            html += `<td style="padding: ${pad}; border-bottom: 1px solid #f4f4f5; text-align: ${align}; font-weight: ${fwStyle};">${content}</td>`;
                         }
                     }
                     html += '</tr>';
@@ -1938,17 +1950,23 @@
                 html += '</tbody>';
             }
 
-            const tfoot = table.querySelector('tfoot');
-            if (tfoot) {
-                html += '<tfoot style="background: #f4f4f5; font-weight: bold;"><tr>';
-                const tds = tfoot.querySelectorAll('td');
-                const len = skipLastCol ? tds.length - 1 : tds.length;
-                for (let i = 0; i < len; i++) {
-                    const align = i === 0 ? 'left' : 'right';
-                    const col = (i === len - 1) ? '#E4007C' : '#1a1a1a';
-                    html += `<td style="padding: 6px 3px; border-top: 2px solid #e4e4e7; text-align: ${align}; color: ${col};">${tds[i].innerText}</td>`;
+            if (tfootId) {
+                const tfoot = document.getElementById(tfootId);
+                if (tfoot && !tfoot.classList.contains('hidden')) {
+                    html += '<tfoot style="background: #f4f4f5; font-weight: bold;">';
+                    tfoot.querySelectorAll('tr').forEach(tr => {
+                        html += '<tr>';
+                        const tds = tr.querySelectorAll('td');
+                        const len = skipLastCol ? Math.max(0, tds.length - 1) : tds.length;
+                        for (let i = 0; i < len; i++) {
+                            const align = tds[i].classList.contains('text-right') ? 'right' : 'left';
+                            const colspan = tds[i].getAttribute('colspan') ? `colspan="${tds[i].getAttribute('colspan')}"` : '';
+                            html += `<td ${colspan} style="padding: ${pad}; border-top: 2px solid #d4d4d8; text-align: ${align};">${tds[i].innerText}</td>`;
+                        }
+                        html += '</tr>';
+                    });
+                    html += '</tfoot>';
                 }
-                html += '</tr></tfoot>';
             }
 
             html += '</table>';
@@ -1961,7 +1979,15 @@
 
             const prevTab = activeTab;
             const vistas = ['carga', 'dashboard', 'comparativo', 'ceo', 'relacion-pago', 'relacion-imputacion', 'config'];
-            vistas.forEach(t => { const el = document.getElementById(`view-${t}`); el.style.display = 'block'; el.style.position = 'absolute'; el.style.visibility = 'hidden'; el.style.width = '1000px'; });
+            vistas.forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                if (el) {
+                    el.style.display = 'block';
+                    el.style.position = 'absolute';
+                    el.style.visibility = 'hidden';
+                    el.style.width = '1100px';
+                }
+            });
 
             renderDashboard(); renderComparativoInit(); renderCeo(); renderCarga(); renderRelacionPago(); renderRelacionImputacion();
 
@@ -1975,10 +2001,27 @@
                 if(cPDV && cPDV.width > 0) imgPDV = cPDV.toDataURL('image/png', 1.0);
                 if(cComp && cComp.width > 0) imgComp = cComp.toDataURL('image/png', 1.0);
 
-                vistas.forEach(t => { const el = document.getElementById(`view-${t}`); el.style.display = 'none'; el.style.position = ''; el.style.visibility = ''; el.style.width = ''; });
+                const tablaMatrizDash = extractTableHTML('tbody-matriz-dash', 'thead-matriz-dash', false);
+                const tablaCeo = extractTableHTML('tbody-ceo', 'thead-ceo', true, 'tfoot-ceo');
+                const tablaCarga = extractTableHTML('tbody-carga', 'thead-carga', true);
+                const tablaRelPago = extractTableHTML('tbody-rel-pago', 'thead-rel-pago', false, 'tfoot-rel-pago', true);
+                const tablaRelImp = extractTableHTML('tbody-rel-imp', 'thead-rel-imp', true, 'tfoot-rel-imp', true);
+
+                vistas.forEach(t => {
+                    const el = document.getElementById(`view-${t}`);
+                    if (el) {
+                        el.style.display = 'none';
+                        el.style.position = '';
+                        el.style.visibility = '';
+                        el.style.width = '';
+                    }
+                });
                 changeTab(prevTab);
 
-                // HTML Optimizado estrictamente para impresión (A4 PDF).
+                const incRelPago = document.getElementById('chk-pdf-rel-pago').checked;
+                const incRelImp = document.getElementById('chk-pdf-rel-imp').checked;
+                const useLandscape = incRelPago || incRelImp;
+
                 let html = `<!DOCTYPE html>
                 <html lang="es">
                 <head>
@@ -1986,10 +2029,11 @@
                     <title>Reporte_Modashop_${currentGlobalYear}</title>
                     <style>
                         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+                        @page { size: ${useLandscape ? 'A4 landscape' : 'A4 portrait'}; margin: 1.2cm; }
                         body { font-family: 'Nunito', sans-serif; color: #1a1a1a; padding: 0; margin: 0; background: white; font-size: 12px; }
-                        .page { padding: 2cm; max-width: 21cm; margin: 0 auto; }
+                        .page { padding: 1cm; max-width: ${useLandscape ? '28cm' : '21cm'}; margin: 0 auto; }
                         h1 { font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; }
-                        h2 { font-size: 16px; font-weight: 900; border-bottom: 2px solid #E4007C; padding-bottom: 4px; margin-top: 30px; margin-bottom: 15px; color: #1a1a1a; }
+                        h2 { font-size: 16px; font-weight: 900; border-bottom: 2px solid #E4007C; padding-bottom: 4px; margin-top: 25px; margin-bottom: 12px; color: #1a1a1a; }
                         .header { border-bottom: 4px solid #1a1a1a; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
                         .magenta { color: #E4007C; }
                         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -1997,9 +2041,11 @@
                         .kpi-val { font-size: 18px; font-weight: 900; margin-top: 5px; }
                         .charts { display: flex; gap: 20px; margin-bottom: 20px; }
                         .charts img { max-width: 100%; height: auto; max-height: 200px; }
-                        table { page-break-inside: avoid; margin-bottom: 20px; }
+                        table { page-break-inside: auto; margin-bottom: 20px; }
+                        tr { page-break-inside: avoid; }
+                        .page-break { page-break-before: always; }
                         .diag-box { background: #f4f4f5; border-left: 4px solid #E4007C; padding: 10px 15px; font-style: italic; margin-bottom: 20px; }
-                        @media print { body { padding: 0; } .page { padding: 0; width: 100%; } }
+                        @media print { body { padding: 0; } .page { padding: 0; width: 100%; max-width: none; } }
                     </style>
                 </head>
                 <body onload="window.print()">
@@ -2018,7 +2064,7 @@
 
                 if (document.getElementById('chk-pdf-dash').checked) {
                     html += `
-                        <h2>1. Resumen Global Anual</h2>
+                        <h2>Resumen Global Anual</h2>
                         <div class="grid-4">
                             <div class="kpi-box"><div style="font-size:10px;color:#71717a;font-weight:bold;">TOTAL GASTOS</div><div class="kpi-val">${document.getElementById('kpi-dash-total').innerText}</div></div>
                             <div class="kpi-box"><div style="font-size:10px;color:#16a34a;font-weight:bold;">PAGADO</div><div class="kpi-val" style="color:#16a34a">${document.getElementById('kpi-dash-pagado').innerText}</div></div>
@@ -2030,13 +2076,13 @@
                             <div style="flex: 1; text-align: center;"><div style="font-size:10px;font-weight:bold;margin-bottom:5px;">Distribución</div>${imgPDV ? `<img src="${imgPDV}" />` : ''}</div>
                         </div>
                         <div style="font-size:12px;font-weight:bold;margin-bottom:5px;">Matriz Operativa Consolidada</div>
-                        ${extractTableHTML('tbody-matriz-dash', 'thead-matriz-dash', false)}
+                        ${tablaMatrizDash}
                     `;
                 }
 
                 if (document.getElementById('chk-pdf-ceo').checked) {
                     html += `
-                        <h2>2. Área CEO y Liquidación (${mesCEO})</h2>
+                        <h2>Área CEO y Liquidación (${mesCEO})</h2>
                         <div style="border: 1px solid #e4e4e7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                             <table style="width:100%; border:none;">
                                 <tr><td style="border:none;padding:4px;">Compromiso Base:</td><td style="border:none;text-align:right;font-weight:bold;">USD ${document.getElementById('ceo-presupuesto-usd').value}</td></tr>
@@ -2048,13 +2094,13 @@
                             </table>
                         </div>
                         <div style="font-size:12px;font-weight:bold;margin-bottom:5px;">Detalle Gastos Directos CEO</div>
-                        ${extractTableHTML('tbody-ceo', 'thead-ceo', true)}
+                        ${tablaCeo}
                     `;
                 }
 
                 if (document.getElementById('chk-pdf-comp').checked) {
                     html += `
-                        <h2>3. Diagnóstico Estratégico Intermensual</h2>
+                        <h2>Diagnóstico Estratégico Intermensual</h2>
                         <div class="diag-box">
                             <strong>Análisis IA:</strong> ${document.getElementById('diagnostico-text').innerText}
                         </div>
@@ -2067,24 +2113,24 @@
 
                 if (document.getElementById('chk-pdf-carga').checked) {
                     html += `
-                        <h2>4. Detalle Completo de Operaciones (${mesCarga})</h2>
-                        ${extractTableHTML('tbody-carga', 'thead-carga', true)}
+                        <h2>Detalle Completo de Operaciones (${mesCarga})</h2>
+                        ${tablaCarga}
                     `;
                 }
 
-                if (document.getElementById('chk-pdf-rel-pago').checked) {
-                    const filtroPagoTxt = document.getElementById('rel-pago-filter').selectedOptions[0].text;
+                if (incRelPago) {
                     html += `
-                        <h2 style="page-break-before: always;">Relación con Pago - Flujo Mensual (${filtroPagoTxt})</h2>
-                        ${extractMatrixPDFHTML('table-rel-pago', false)}
+                        <div class="page-break"></div>
+                        <h2>Relación con Pago - Flujo Anual (${currentGlobalYear})</h2>
+                        ${tablaRelPago}
                     `;
                 }
 
-                if (document.getElementById('chk-pdf-rel-imp').checked) {
-                    const filtroImpTxt = document.getElementById('rel-imp-filter').selectedOptions[0].text;
+                if (incRelImp) {
                     html += `
-                        <h2 style="page-break-before: always;">Relación con Imputación de Impuesto (${filtroImpTxt})</h2>
-                        ${extractMatrixPDFHTML('table-rel-imp', true)}
+                        <div class="page-break"></div>
+                        <h2>Relación con Imputación de Impuesto (${currentGlobalYear})</h2>
+                        ${tablaRelImp}
                     `;
                 }
 
